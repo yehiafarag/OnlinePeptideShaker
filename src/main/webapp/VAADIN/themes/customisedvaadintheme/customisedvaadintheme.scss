@@ -1,0 +1,166 @@
+// If you edit this file you need to compile the theme. See README.md for details.
+
+// Global variable overrides. Must be declared before importing Valo.
+
+// Defines the plaintext font size, weight and family. Font size affects general component sizing.
+//$v-font-size: 16px;
+//$v-font-weight: 300;
+//$v-font-family: "Open Sans", sans-serif;
+
+// Defines the border used by all components.
+//$v-border: 1px solid (v-shade 0.7);
+//$v-border-radius: 4px;
+
+// Affects the color of some component elements, e.g Button, Panel title, etc
+//$v-background-color: hsl(210, 0%, 98%);
+// Affects the color of content areas, e.g  Panel and Window content, TextField input etc
+//$v-app-background-color: $v-background-color;
+
+// Affects the visual appearance of all components
+//$v-gradient: v-linear 8%;
+//$v-bevel-depth: 30%;
+//$v-shadow-opacity: 5%;
+
+// Defines colors for indicating status (focus, success, failure)
+//$v-focus-color: valo-focus-color(); // Calculates a suitable color automatically
+//$v-friendly-color: #2c9720;
+//$v-error-indicator-color: #ed473b;
+
+// For more information, see: https://vaadin.com/book/-/page/themes.valo.html
+// Example variants can be copy/pasted from https://vaadin.com/wiki/-/wiki/Main/Valo+Examples
+
+@import "../valo/valo.scss";
+@import "../../../VAADIN/addons/vaadin-icons/vaadin-icons.scss";
+
+
+
+@font-face {
+    font-family: ThemeIcons;
+    font-weight: normal;
+    font-style: normal;
+    src: url(../valo/util/bourbon/css3/../../../../base/fonts/themeicons-webfont.eot);
+    src: url(../valo/util/bourbon/css3/../../../../base/fonts/themeicons-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/util/bourbon/css3/../../../../base/fonts/themeicons-webfont.woff) format("woff"), url(../valo/util/bourbon/css3/../../../../base/fonts/themeicons-webfont.ttf) format("truetype"), url(../valo/util/bourbon/css3/../../../../base/fonts/themeicons-webfont.svg#ThemeIcons) format("svg");
+}
+@font-face {
+    font-family: "Open Sans";
+    src: url(../valo/fonts/open-sans/OpenSans-Light-webfont.eot);
+    src: url(../valo/fonts/open-sans/OpenSans-Light-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/fonts/open-sans/OpenSans-Light-webfont.woff) format("woff"), url(../valo/fonts/open-sans/OpenSans-Light-webfont.ttf) format("truetype");
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url(../valo/fonts/open-sans/OpenSans-Regular-webfont.eot);
+    src: url(../valo/fonts/open-sans/OpenSans-Regular-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/fonts/open-sans/OpenSans-Regular-webfont.woff) format("woff"), url(../valo/fonts/open-sans/OpenSans-Regular-webfont.ttf) format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url(../valo/fonts/open-sans/OpenSans-Semibold-webfont.eot);
+    src: url(../valo/fonts/open-sans/OpenSans-Semibold-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/fonts/open-sans/OpenSans-Semibold-webfont.woff) format("woff"), url(../valo/fonts/open-sans/OpenSans-Semibold-webfont.ttf) format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+@font-face {
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    src: url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.eot);
+    src: url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.woff) format("woff"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.ttf) format("truetype"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.svg#FontAwesome) format("svg");
+}
+@mixin customisedvaadintheme {
+    @include valo;
+    @include vaadin-icons;
+
+
+
+    .ThemeIcons {
+        font-family: ThemeIcons;
+        font-style: normal;
+        font-weight: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .FontAwesome {
+        font-family: FontAwesome;
+        font-style: normal;
+        font-weight: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        display: inline-block;
+        text-align: center;
+    }
+
+
+
+    // Insert your own theme rules here
+
+    .frame{
+        border: 1px solid black;
+        border-radius: 5px;
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .lightblueframe {
+        border: 2px solid lightgray;
+        border-radius: 5px;
+        background-color: rgba(25, 125, 225, 0.12);
+    }
+
+    .headerlogo {
+        text-decoration: none !important;;
+        color: #474747 !important;
+        font-size: 30px;
+    }
+    .headerlogo font{
+        text-decoration: none !important;
+        font-size: 15px;
+        font-style:italic;
+        color:#cd6e1d;
+    }
+    .v-caption-textfileldborder img{
+        max-height:25px !important;
+    }
+    .minheight400{
+        min-height: 400px !important;
+    }
+    .minwidth500{
+        min-width: 500px !important;
+    }
+    .minimizegalaxypanel{
+        background-image: url(img/galaxyLogo.png) !important;
+        background-size:contain;
+        cursor:pointer;
+        width: 30px !important;
+        height: 30px !important;
+        overflow: hidden !important;
+        margin-left:10px !important;
+        -webkit-transition: all 0.5s ease-in-out;
+        -moz-transition: all 0.5s ease-in-out;
+        -o-transition: all 0.5s ease-in-out;
+        transition: all 0.5s ease-in-out;
+
+    }
+    .maxmizegalaxypanel{
+       
+       margin-left: 50px;
+	width: 500px !important;
+	background-color:white;
+	box-shadow: 0px 0px 2px 2px;
+	opacity:1;
+	z-index:1000000;
+	position:relative;
+	overflow: hidden !important;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+	-webkit-transform: rotatey(360deg);
+	transform: rotatey(360deg);
+    }
+}
