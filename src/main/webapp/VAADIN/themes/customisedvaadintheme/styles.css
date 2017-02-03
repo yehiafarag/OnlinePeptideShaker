@@ -13066,15 +13066,12 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .customisedvaadintheme .frame {
-	border: 1px solid black;
-	border-radius: 5px;
-	background-color: rgba(0, 0, 0, 0.05);
+	background-color: whitesmoke;
 }
 
 .customisedvaadintheme .lightblueframe {
 	border: 2px solid lightgray;
-	border-radius: 5px;
-	background-color: rgba(25, 125, 225, 0.12);
+	background-color: whitesmoke;
 }
 
 .customisedvaadintheme .headerlogo {
@@ -13094,12 +13091,12 @@ div.v-layout.v-horizontal.v-widget {
 	max-height: 25px !important;
 }
 
-.customisedvaadintheme .minheight400 {
-	min-height: 400px !important;
+.customisedvaadintheme .minheight275 {
+	min-height: 275px !important;
 }
 
-.customisedvaadintheme .minwidth500 {
-	min-width: 500px !important;
+.customisedvaadintheme .minwidth435 {
+	min-width: 435px !important;
 }
 
 .customisedvaadintheme .minimizegalaxypanel {
@@ -13116,19 +13113,195 @@ div.v-layout.v-horizontal.v-widget {
 	transition: all 0.5s ease-in-out;
 }
 
-.customisedvaadintheme .maxmizegalaxypanel {
-	margin-left: 50px;
-	width: 500px !important;
+.customisedvaadintheme .panelframe.v-window {
 	background-color: white;
-	box-shadow: 0px 0px 10px 10px;
+	box-shadow: 0px 0px 2px 2px;
 	opacity: 1;
-	z-index: 1000000;
-	position: relative;
+	-webkit-transition: all 1.5s ease-in-out;
+	-moz-transition: all 1.5s ease-in-out;
+	-o-transition: all 1.5s ease-in-out;
+	transition: all 1.5s ease-in-out;
+	-webkit-transform: rotatey(360deg);
+	transform: rotatey(360deg);
+}
+
+.customisedvaadintheme .maxheight250 {
+	max-height: 250px !important;
+}
+
+.customisedvaadintheme .maxwidth450 {
+	max-width: 450px !important;
+}
+
+.customisedvaadintheme .galaxyservericon {
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .hidetextoverflow {
 	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+}
+
+.customisedvaadintheme .sidebutton {
+	padding: 5%;
+	background-color: white;
+	border-right: 1px solid lightgray;
+}
+
+.customisedvaadintheme .sidebutton img {
+	padding: 10px;
+	width: auto !important;
+	height: auto !important;
+	max-width: 95%;
+	max-height: 95%;
+}
+
+.customisedvaadintheme .sidebuttonframe:hover {
+	background-color: lightgray !important;
+	border-color: gray !important;
+}
+
+.customisedvaadintheme .sidebutton .v-icon {
+	cursor: pointer;
+	margin: -2px !important;
+}
+
+.customisedvaadintheme .mergewithmainview {
+	background-color: #f1f9fe !important;
+	border-left: 1px solid lightgray;
+	border-right: 1px solid #f1f9fe;
+	border-bottom: 1px solid lightgray;
+	border-top: 1px solid lightgray;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+.customisedvaadintheme .sidebuttonframe {
+	cursor: pointer;
+	border: 1px solid lightgray !important;
+	background-color: whitesmoke !important;
+	border-radius: 5px !important;
+}
+
+.customisedvaadintheme .lastsidebtn {
+	border-bottom: 0px !important;
+}
+
+.customisedvaadintheme .mainviewframe {
+	background-color: #f1f9fe;
+	border-top: 1px solid lightgray;
+	border-bottom: 1px solid lightgray;
+	padding: 10px;
+}
+
+.customisedvaadintheme .topleftroundedborder {
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+}
+
+.customisedvaadintheme .toolviewframe {
+	background-color: white;
+	border-radius: 5px;
+	border: 1px solid lightgray;
 	-webkit-transition: all 0.5s ease-in-out;
 	-moz-transition: all 0.5s ease-in-out;
 	-o-transition: all 0.5s ease-in-out;
 	transition: all 0.5s ease-in-out;
-	-webkit-transform: rotatey(360deg);
-	transform: rotatey(360deg);
+}
+
+.customisedvaadintheme .hidepanel {
+	width: 0px !important;
+	height: 0px !important;
+	opacity: 0 !important;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
+.customisedvaadintheme .historyframe {
+	background-color: #f1f9fe;
+}
+
+.customisedvaadintheme .homestyle {
+	border: 1px solid lightgray;
+	background-color: whitesmoke;
+	border-radius: 3px;
+	background-image: url(img/home-o.png);
+	background-repeat: no-repeat;
+	background-size: 80%;
+	background-position: center;
+	min-width: 16px;
+	min-height: 16px;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .homestyle:hover {
+	background-color: lightgray;
+	border-color: gray;
+}
+
+.customisedvaadintheme .toprightframe {
+	padding-bottom: 10px;
+	padding-left: 10px;
+	background-color: #ffffff;
+	border-left: 1px solid lightgray;
+}
+
+.customisedvaadintheme .bottomrightframe {
+	border-right: 1px solid lightgray;
+	border-bottom: 1px solid lightgray;
+	border-top: 1px solid lightgray;
+	border-bottom-right-radius: 5px;
+	border-top-right-radius: 5px;
+	padding-top: 10px;
+	padding-right: 10px;
+	padding-bottom: 10px;
+}
+
+.customisedvaadintheme .galaxybtnstyle {
+	border: 1px solid lightgray;
+	background-color: whitesmoke;
+	border-radius: 3px;
+	background-image: url(img/galaxyLogo.png);
+	background-repeat: no-repeat;
+	background-size: 80%;
+	background-position: center;
+	min-width: 16px;
+	min-height: 16px;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .galaxybtnstyle:hover {
+	background-color: lightgray;
+	border-color: gray;
+}
+
+.customisedvaadintheme .maxheight80 {
+	max-height: 80px !important;
+}
+
+.customisedvaadintheme .historypopuplabel {
+	background-color: lightgray !important;
+	border: 2px solid gray;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .v-popupview-historylabel {
+	text-decoration: none !important;
+	color: white;
+	font-weight: bold !important;
+	padding-left: 20px;
+	-ms-transform: rotate(90deg) translateX(100%);
+	-moz-transform: rotate(90deg) translateX(100%);
+	-webkit-transform: rotate(90deg) translateX(100%);
+	-o-transform: rotate(90deg) translateX(100%);
+	transform: rotate(90deg) translateX(100%);
+	-ms-transform-origin: 100% 0;
+	-moz-transform-origin: 100% 0;
+	-webkit-transform-origin: 100% 0;
+	-o-transform-origin: 100% 0;
+	transform-origin: 100% 0;
 }

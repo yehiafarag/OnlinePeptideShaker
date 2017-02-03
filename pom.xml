@@ -77,6 +77,11 @@
             <artifactId>vaadin-icons</artifactId>
             <version>2.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.vaadin.embedded</groupId>
+            <artifactId>embedded-ui</artifactId>
+            <version>1.1</version>
+        </dependency>
         
     </dependencies>
 

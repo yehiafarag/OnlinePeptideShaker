@@ -5,11 +5,15 @@ import javax.servlet.annotation.WebServlet;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser
@@ -28,10 +32,22 @@ public class ApplicationUI extends UI {
         this.setSizeFull();
         
         Panel applicationContainer = new Panel();
-//        applicationContainer.setStyleName("frame");
         applicationContainer.setSizeFull();        
         setContent(applicationContainer);
         applicationContainer.setContent(new MainApplicationGUI());
+        
+        Page.getCurrent().addBrowserWindowResizeListener((Page.BrowserWindowResizeEvent event) -> {
+            for(Window w:UI.getCurrent().getWindows())
+                w.center();
+        });
+        
+        
+        
+        
+
+
+
+
     }
     
     @WebServlet(urlPatterns = "/*", name = "ApplicationUIServlet", asyncSupported = true)
