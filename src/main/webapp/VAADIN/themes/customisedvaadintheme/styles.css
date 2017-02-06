@@ -13195,6 +13195,13 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 10px;
 }
 
+.customisedvaadintheme .v-slot-mainviewframe {
+	webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
 .customisedvaadintheme .topleftroundedborder {
 	border-top-left-radius: 0px;
 	border-bottom-left-radius: 0px;
@@ -13289,19 +13296,102 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
-.customisedvaadintheme .v-popupview-historylabel {
+.customisedvaadintheme .historypopuplabel :hover {
+	background-color: #4d749f !important;
+	overflow: hidden;
+}
+
+.customisedvaadintheme .historylabel {
 	text-decoration: none !important;
 	color: white;
 	font-weight: bold !important;
-	padding-left: 20px;
-	-ms-transform: rotate(90deg) translateX(100%);
-	-moz-transform: rotate(90deg) translateX(100%);
-	-webkit-transform: rotate(90deg) translateX(100%);
-	-o-transform: rotate(90deg) translateX(100%);
-	transform: rotate(90deg) translateX(100%);
-	-ms-transform-origin: 100% 0;
-	-moz-transform-origin: 100% 0;
-	-webkit-transform-origin: 100% 0;
-	-o-transform-origin: 100% 0;
-	transform-origin: 100% 0;
+	cursor: pointer;
+	padding: 5px;
+	margin-left: -2px;
+	max-width: 25px !important;
+	max-height: 91px !important;
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden;
+}
+
+.customisedvaadintheme .rightmovablepanel {
+	background-color: #ffffff;
+	border: 1px solid lightgray;
+	border-radius: 5px;
+	position: relative !important;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
+.customisedvaadintheme .hidepanel {
+	width: 0px !important;
+	height: 0px !important;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
+.customisedvaadintheme .v-slot-fullsize {
+	width: 100% !important;
+	height: 100% !important;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
+.customisedvaadintheme .v-slot-slowmove {
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+
+.customisedvaadintheme .v-slot-standredcombobox {
+	min-height: 27px !important;
+}
+
+.customisedvaadintheme .deletablelabel {
+	background-color: gray;
+	color: white;
+	font-size: 13px;
+	padding-left: 10px;
+	overflow: hidden !important;
+	text-overflow: ellipsis;
+	line-height: 20px !important;
+	max-height: 20px !important;
+}
+
+.customisedvaadintheme .closebtn {
+	border: 1px solid white;
+	max-width: 16px !important;
+	min-height: 10px;
+	height: auto !important;
+	padding: 2px !important;
+	margin-right: 5px !important;
+	cursor: pointer !important;
+	background-color: white;
+	border: 1px solid lightgray;
+	border-radius: 2px;
+	background-image: url("img/close.png");
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center;
+}
+
+.customisedvaadintheme .deletablelabel div {
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+}
+
+.customisedvaadintheme .deletablelabel a {
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	color: white !important;
+	text-decoration: none !important;
+	cursor: url(img/download.svg), auto;
 }

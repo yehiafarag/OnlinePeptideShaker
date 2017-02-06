@@ -46,8 +46,14 @@ public class MainApplicationGUI extends VerticalLayout {
      * The galaxy server connection panel.
      */
     private final GalaxyConnectionPanel galaxyInputPanel;
-
+    /**
+     * The galaxy server logic layer.
+     */
     private final LogicLayer LOGIC_LAYER;
+    /**
+     * The galaxy server history manger.
+     */
+    private HistoryManagmentPresenter historyManagmentPresenter;
 
     /**
      * Constructor to initialize the main variable.
@@ -108,6 +114,9 @@ public class MainApplicationGUI extends VerticalLayout {
         return headerLayoutContainer;
     }
 
+    /**
+     * Initialize the main body panel that has all tools and history contents
+     */
     private HorizontalLayout initalizeBodyPanel() {
         HorizontalLayout bodyPanelLayout = new HorizontalLayout();
         bodyPanelLayout.setSpacing(false);
@@ -117,14 +126,12 @@ public class MainApplicationGUI extends VerticalLayout {
         bodyPanelLayout.addComponent(toolsControlSection);
         bodyPanelLayout.setExpandRatio(toolsControlSection, 10);
 
-        AbsoluteLayout mainViewSection = new AbsoluteLayout();
-        mainViewSection.setWidth(100, Unit.PERCENTAGE);
-        mainViewSection.setHeight(100, Unit.PERCENTAGE);
-        mainViewSection.setStyleName("mainviewframe");
-        bodyPanelLayout.addComponent(mainViewSection);
-        bodyPanelLayout.setExpandRatio(mainViewSection, 87);
-
-        VISUALIZATION_MANAGER = new VisualizationManager(mainViewSection, toolsControlSection);
+        HorizontalLayout toolViewHistoryContainer = new HorizontalLayout();
+        toolViewHistoryContainer.setSizeFull();
+        toolViewHistoryContainer.setStyleName("mainviewframe");
+        bodyPanelLayout.addComponent(toolViewHistoryContainer);
+        bodyPanelLayout.setExpandRatio(toolViewHistoryContainer, 87);
+        toolViewHistoryContainer.setSpacing(true);
 
         VerticalLayout historySection = new VerticalLayout();
         historySection.setWidth(100, Unit.PERCENTAGE);
@@ -132,6 +139,40 @@ public class MainApplicationGUI extends VerticalLayout {
         historySection.setStyleName("historyframe");
         bodyPanelLayout.addComponent(historySection);
         bodyPanelLayout.setExpandRatio(historySection, 3);
+
+        AbsoluteLayout mainViewSection = new AbsoluteLayout();
+        mainViewSection.setWidth(100, Unit.PERCENTAGE);
+        mainViewSection.setHeight(100, Unit.PERCENTAGE);
+        mainViewSection.setStyleName("slowmove");
+        toolViewHistoryContainer.addComponent(mainViewSection);
+        toolViewHistoryContainer.setExpandRatio(mainViewSection, 0.7f);
+
+        historyManagmentPresenter = new HistoryManagmentPresenter() {
+            @Override
+            public void updateSelectedHistory(String historyId) {
+                LOGIC_LAYER.updateSelectedHistory(historyId);
+                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+            }
+
+            @Override
+            public void createNewHistory(String historyName) {
+                LOGIC_LAYER.createNewHistory(historyName);
+                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+            }
+
+            @Override
+            public void deleteHistoryDataset(String historyId, String historyDatasetId) {
+                LOGIC_LAYER.deleteGalaxyHistoryDataseyt(historyDatasetId, historyDatasetId);
+                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+
+            }
+
+        };
+        toolViewHistoryContainer.addComponent(historyManagmentPresenter.getMainHistoryPanel());
+        toolViewHistoryContainer.setComponentAlignment(historyManagmentPresenter.getMainHistoryPanel(), Alignment.BOTTOM_RIGHT);
+        toolViewHistoryContainer.setExpandRatio(historyManagmentPresenter.getMainHistoryPanel(), 0.3f);
+
+        VISUALIZATION_MANAGER = new VisualizationManager(toolsControlSection, mainViewSection, historyManagmentPresenter);
 
         VerticalLayout topRightLayoutContainer = new VerticalLayout();
         topRightLayoutContainer.setSizeFull();
@@ -165,28 +206,13 @@ public class MainApplicationGUI extends VerticalLayout {
         UploadDataWebToolPresenter uploadToGalaxyTool = new UploadDataWebToolPresenter();
         VISUALIZATION_MANAGER.registerView(uploadToGalaxyTool);
 
-        VerticalLayout historyLabelLayout = new VerticalLayout();
-        historyLabelLayout.setSizeFull();
-        bottomRightLayoutContainer.addComponent(historyLabelLayout);
-        historyLabelLayout.setStyleName("historypopuplabel");
+        bottomRightLayoutContainer.addComponent(historyManagmentPresenter);
 
-        VerticalLayout historyContentLayout = new VerticalLayout();
-        historyContentLayout.setWidth("500px");
-        historyContentLayout.setHeight("500px");
-        PopupView historyPopUp = new PopupView("<center>HISTORY</center>", historyContentLayout);
-        historyPopUp.setSizeFull();
-        historyPopUp.setStyleName("historylabel");
-        historyPopUp.setCaptionAsHtml(true);
-        historyLabelLayout.addComponent(historyPopUp);
-        historyLabelLayout.addLayoutClickListener((LayoutEvents.LayoutClickEvent event) -> {
-            historyPopUp.setPopupVisible(true);
-        });
 //        historyLabelLayout.setCaption("");
 //        
 //        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
 //        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
 //        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
-
 //        AbsoluteLayout lastBtton = new SearchGUIWebToolPresenter(LOGIC_LAYER.getNelsUtil_tool()).getMinimizeComponent();
 //        lastBtton.addStyleName("lastsidebtn");
 //        toolsControlSection.addComponent(lastBtton);
@@ -216,18 +242,8 @@ public class MainApplicationGUI extends VerticalLayout {
         LOGIC_LAYER.initializeTheLogicLayer(galaxyInstant);
         bodyPanel.removeAllComponents();
         bodyPanel.addComponent(initalizeBodyPanel());
+        historyManagmentPresenter.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
 
-//        System.out.println("com.uib.onlinepeptideshaker.presenter.MainApplicationGUI.systemConnected()"+tc.showTool(DESIGN_ATTR_PLAIN_TEXT)) );
-//        for(int x=0;x<tc.getTools().size();x++){
-//            ToolSection toolsection=tc.getTools().get(x);
-//            if(toolsection==null || toolsection.getName()==null)
-//                continue;
-//            System.out.println("section is : "+toolsection.getName());
-//            for(Tool t:toolsection.getElems())
-//                System.out.println("at tool "+t);
-//        
-//        
-//        }
     }
 
 }

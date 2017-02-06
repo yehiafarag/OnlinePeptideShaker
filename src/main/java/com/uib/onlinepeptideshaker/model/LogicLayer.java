@@ -2,9 +2,16 @@ package com.uib.onlinepeptideshaker.model;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
 import com.github.jmchilton.blend4j.galaxy.ToolsClient;
+import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
+import com.github.jmchilton.blend4j.galaxy.beans.History;
+import com.github.jmchilton.blend4j.galaxy.beans.HistoryContents;
+import com.github.jmchilton.blend4j.galaxy.beans.HistoryDetails;
 import com.github.jmchilton.blend4j.galaxy.beans.Tool;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolSection;
+import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * This class represents the business logic layer (BLL) where the main
@@ -33,7 +40,7 @@ public class LogicLayer {
     }
 
     /**
-     * Get NelsUtility  web tool that has all the required tool information
+     * Get NelsUtility web tool that has all the required tool information
      *
      * @return WebTool NelsUtil_tool
      */
@@ -62,6 +69,10 @@ public class LogicLayer {
      * Galaxy NelsUtil_tool tool.
      */
     private WebTool nelsUtil_tool;
+    /**
+     * Galaxy History bean.
+     */
+    private GalaxyHistory currentGalaxyHistory;
 
     /**
      * Initialize the main logic layer
@@ -80,6 +91,8 @@ public class LogicLayer {
         this.GALAXY_INSTANCE = GALAXY_INSTANCE;
         this.TOOLS_CLIENT = GALAXY_INSTANCE.getToolsClient();
         this.initializeToolsModel();
+        this.currentGalaxyHistory = new GalaxyHistory();
+        this.initGalaxyHistory(null);
     }
 
     /**
@@ -126,6 +139,86 @@ public class LogicLayer {
         webTool.setToolName(galaxyTool.getName());
         webTool.setToolSection(toolSectionId);
         webTool.addTool(toolSectionId, galaxyTool.getId());
+
+    }
+
+    /**
+     * Initialize the Galaxy user history
+     *
+     * @param historyId Galaxy history id
+     */
+    private void initGalaxyHistory(String historyId) {
+
+        if (historyId == null) {
+            currentGalaxyHistory.setUsedHistoryId(GALAXY_INSTANCE.getHistoriesClient().getHistories().get(2).getId());
+        } else {
+            currentGalaxyHistory.setUsedHistoryId(historyId);
+        }
+        Map<String, String> historySecMap = new LinkedHashMap<>();
+        for (History history : GALAXY_INSTANCE.getHistoriesClient().getHistories()) {
+            historySecMap.put(history.getId(), history.getName());
+        }
+
+        currentGalaxyHistory.setAvailableGalaxyHistoriesMap(historySecMap);
+        Map<String, HistoryContents> galaxyDatasetMap = new LinkedHashMap<>();
+        for (HistoryContents content : GALAXY_INSTANCE.getHistoriesClient().showHistoryContents(currentGalaxyHistory.getUsedHistoryId())) {
+            if (content.isDeleted()) {
+                continue;
+            }
+            Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), content.getId());
+            content.setHistoryContentType(GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), content.getId()).getDataTypeExt());
+            content.setUrl(ds.getFullDownloadUrl());
+            galaxyDatasetMap.put(content.getId(), content);
+        }
+        currentGalaxyHistory.setHistoryDatasetsMap(galaxyDatasetMap);
+
+    }
+
+    /**
+     * Get current selected history
+     *
+     * @return GalaxyHistory current selected history bean
+     */
+    public GalaxyHistory getCurrentGalaxyHistory() {
+        return currentGalaxyHistory;
+    }
+
+    /**
+     * Create new Galaxy user history
+     *
+     * @param historyName new Galaxy history name
+     */
+    public void createNewHistory(String historyName) {
+        History newHistory = GALAXY_INSTANCE.getHistoriesClient().create(new History(historyName));
+        initGalaxyHistory(newHistory.getId());
+
+    }
+
+    /**
+     * Delete history dataset from galaxy server
+     *
+     * @param historyId Galaxy history id
+     * @param datasetId Galaxy history dataset id
+     */
+    public void deleteGalaxyHistoryDataseyt(String historyId, String datasetId) {
+//        Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(historyId, datasetId);        
+//        ds.setDeleted(true);
+//GALAXY_INSTANCE.getHistoriesClient().deleteHistory(historyId).setId(datasetId);
+        
+//        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.deleteGalaxyHistoryDataseyt()" + ds.getName());
+//          final String query = "delete *  from hda where id= '" + ds.getId()+ "'";
+//          GALAXY_INSTANCE.getSearchClient().search(query);
+
+//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient().createHistoryDataset(historyId, ds);
+    }
+
+    /**
+     * Update the selected history in galaxy.
+     *
+     * @param historyId selected history id could be from exist history or new.
+     */
+    public void updateSelectedHistory(String historyId) {
+        initGalaxyHistory(historyId);
 
     }
 
