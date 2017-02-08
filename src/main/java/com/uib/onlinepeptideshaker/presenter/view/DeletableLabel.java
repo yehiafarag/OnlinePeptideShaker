@@ -32,6 +32,7 @@ public abstract class DeletableLabel extends HorizontalLayout implements LayoutE
         DeletableLabel.this.setExpandRatio(deleteBtn, 20);
         DeletableLabel.this.setComponentAlignment(deleteBtn, Alignment.MIDDLE_RIGHT);
         deleteBtn.addLayoutClickListener(DeletableLabel.this);
+        deleteBtn.setEnabled(false);
 
     }
 

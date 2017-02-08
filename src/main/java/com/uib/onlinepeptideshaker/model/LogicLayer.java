@@ -5,6 +5,7 @@ import com.github.jmchilton.blend4j.galaxy.ToolsClient;
 import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
 import com.github.jmchilton.blend4j.galaxy.beans.History;
 import com.github.jmchilton.blend4j.galaxy.beans.HistoryContents;
+import com.github.jmchilton.blend4j.galaxy.beans.HistoryDataset;
 import com.github.jmchilton.blend4j.galaxy.beans.HistoryDetails;
 import com.github.jmchilton.blend4j.galaxy.beans.Tool;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolSection;
@@ -150,7 +151,7 @@ public class LogicLayer {
     private void initGalaxyHistory(String historyId) {
 
         if (historyId == null) {
-            currentGalaxyHistory.setUsedHistoryId(GALAXY_INSTANCE.getHistoriesClient().getHistories().get(2).getId());
+            currentGalaxyHistory.setUsedHistoryId(GALAXY_INSTANCE.getHistoriesClient().getHistories().get(0).getId());
         } else {
             currentGalaxyHistory.setUsedHistoryId(historyId);
         }
@@ -201,15 +202,21 @@ public class LogicLayer {
      * @param datasetId Galaxy history dataset id
      */
     public void deleteGalaxyHistoryDataseyt(String historyId, String datasetId) {
-//        Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(historyId, datasetId);        
-//        ds.setDeleted(true);
-//GALAXY_INSTANCE.getHistoriesClient().deleteHistory(historyId).setId(datasetId);
+        final HistoryDataset hd = new HistoryDataset();
+        hd.setSource(HistoryDataset.Source.HDA);
+        hd.setContent(datasetId);
         
+//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient().createHistoryDataset(historyId, hd);
+//        System.out.println("at check content " + GALAXY_INSTANCE.getToolsClient(.showDataset(historyId, datasetId).());
+//        hds.setContent(GALAXY_INSTANCE.getHistoriesClient().showProvenance(historyId, datasetId).);
+//        GALAXY_INSTANCE.getHistoriesClient().deleteHistory
+//        ds.setPurged(true);
+
+//GALAXY_INSTANCE.getHistoriesClient().deleteHistory(historyId).setId(datasetId);
 //        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.deleteGalaxyHistoryDataseyt()" + ds.getName());
 //          final String query = "delete *  from hda where id= '" + ds.getId()+ "'";
 //          GALAXY_INSTANCE.getSearchClient().search(query);
-
-//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient().createHistoryDataset(historyId, ds);
+//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient()
     }
 
     /**

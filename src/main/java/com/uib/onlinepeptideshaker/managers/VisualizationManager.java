@@ -3,7 +3,6 @@ package com.uib.onlinepeptideshaker.managers;
 import com.uib.onlinepeptideshaker.presenter.HistoryManagmentPresenter;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.ui.AbsoluteLayout;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
         this.historyManagmentPresenter = historyManagmentPresenter;
         historyManagmentPresenter.addLayoutClickListener((LayoutEvents.LayoutClickEvent event) -> {
             if (historyManagmentPresenter.getMainHistoryPanel().getStyleName().contains("hidepanel")) {
-                 historyManagmentPresenter.getMainHistoryPanel().removeStyleName("hidepanel");
+                historyManagmentPresenter.getMainHistoryPanel().removeStyleName("hidepanel");
                 mainToolViewContainer.removeStyleName("fullsize");
             } else {
                 historyManagmentPresenter.getMainHistoryPanel().addStyleName("hidepanel");
@@ -73,7 +72,6 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
         for (RegistrableView view : visualizationMap.values()) {
             view.minimizeView();
         }
-        System.err.println("at max " + viewId);
         visualizationMap.get(viewId).maximizeView();
         if (visualizationMap.keySet().toArray()[0].toString().equalsIgnoreCase(viewId)) {
             System.err.println("at first button selected");

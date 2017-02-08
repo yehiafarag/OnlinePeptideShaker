@@ -62,14 +62,7 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
         historyContentLayout.setWidth(500, Unit.PIXELS);
         historyContentLayout.setHeight("80%");
         
-        Image historyLabel = new Image();
-        historyLabel.setSource(new ThemeResource("img/historylabel.png"));
-        historyLabel.setStyleName("historylabel");
-        historyLabel.setWidth(90, Unit.PERCENTAGE);
-        historyLabel.setHeight(90, Unit.PERCENTAGE);
-        HistoryManagmentPresenter.this.addComponent(historyLabel);
-        HistoryManagmentPresenter.this.setComponentAlignment(historyLabel, Alignment.TOP_CENTER);
-        
+     
         mainHistoryPanelContainer = new VerticalLayout();
         mainHistoryPanelContainer.setStyleName("rightmovablepanel");
         mainHistoryPanelContainer.setSizeFull();
@@ -109,35 +102,41 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
             
         });
         mainHistoryPanelContent.addComponent(userGalaxyHistories);
-        mainHistoryPanelContent.setExpandRatio(userGalaxyHistories, 1);
+        mainHistoryPanelContent.setExpandRatio(userGalaxyHistories, 4);
         
         generalHistoryDatasetPanelContent = new VerticalLayout();
         Panel generalHistoryDatasetPanel = new Panel(generalHistoryDatasetPanelContent);
         generalHistoryDatasetPanel.setSizeFull();
         generalHistoryDatasetPanel.setStyleName(ValoTheme.PANEL_WELL);
         mainHistoryPanelContent.addComponent(generalHistoryDatasetPanel);
-        mainHistoryPanelContent.setExpandRatio(generalHistoryDatasetPanel, 6);
+        mainHistoryPanelContent.setExpandRatio(generalHistoryDatasetPanel, 24);
         
         searchGIUHistoryDatasetPanelContent = new VerticalLayout();
         Panel searchGIUHistoryDatasetPanel = new Panel("SearchGUI input", searchGIUHistoryDatasetPanelContent);
         searchGIUHistoryDatasetPanel.setSizeFull();
         searchGIUHistoryDatasetPanel.setStyleName(ValoTheme.PANEL_WELL);
         mainHistoryPanelContent.addComponent(searchGIUHistoryDatasetPanel);
-        mainHistoryPanelContent.setExpandRatio(searchGIUHistoryDatasetPanel, 6);
+        mainHistoryPanelContent.setExpandRatio(searchGIUHistoryDatasetPanel, 24);
         
         peptideShakerHistoryDatasetPanelContent = new VerticalLayout();
         Panel peptideShakerHistoryDatasetPanel = new Panel("PeptideShaker input", peptideShakerHistoryDatasetPanelContent);
         peptideShakerHistoryDatasetPanel.setSizeFull();
         peptideShakerHistoryDatasetPanel.setStyleName(ValoTheme.PANEL_WELL);
         mainHistoryPanelContent.addComponent(peptideShakerHistoryDatasetPanel);
-        mainHistoryPanelContent.setExpandRatio(peptideShakerHistoryDatasetPanel, 6);
+        mainHistoryPanelContent.setExpandRatio(peptideShakerHistoryDatasetPanel, 24);
         
         peptideShakerHistoryDatasetResultsPanelContent = new VerticalLayout();
         Panel peptideShakerHistoryDatasetResultsPanel = new Panel("PeptideShaker results", peptideShakerHistoryDatasetResultsPanelContent);
         peptideShakerHistoryDatasetResultsPanel.setSizeFull();
         peptideShakerHistoryDatasetResultsPanel.setStyleName(ValoTheme.PANEL_WELL);
         mainHistoryPanelContent.addComponent(peptideShakerHistoryDatasetResultsPanel);
-        mainHistoryPanelContent.setExpandRatio(peptideShakerHistoryDatasetResultsPanel, 6);
+        mainHistoryPanelContent.setExpandRatio(peptideShakerHistoryDatasetResultsPanel, 24);
+        
+        VerticalLayout bottomborder = new VerticalLayout();
+        bottomborder.setSizeFull();
+        mainHistoryPanelContent.addComponent(bottomborder);
+        mainHistoryPanelContent.setExpandRatio(bottomborder, 0.4f);
+        
         
     }
 

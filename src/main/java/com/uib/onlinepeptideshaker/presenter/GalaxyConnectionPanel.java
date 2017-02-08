@@ -252,7 +252,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         APIKey.addStyleName(ValoTheme.TEXTFIELD_TINY);
         APIKey.addStyleName("nomargin");
         APIKey.setInputPrompt("Galaxy API Key");
-        APIKey.setValue("6abed6a0b5021096631350a0b89c5155");//6abed6a0b5021096631350a0b89c5155   ----61062cd3acb2433c1e1ed66d6560357f
+        APIKey.setValue("71821f0c14cf63a2609f59d821bc1df3");//admin 6abed6a0b5021096631350a0b89c5155   ----61062cd3acb2433c1e1ed66d6560357f
         userAPIKeyPanel.addComponent(APIKey);
         APIKey.setWidth(100, Unit.PERCENTAGE);
         APIKey.setHeight(50, Unit.PERCENTAGE);

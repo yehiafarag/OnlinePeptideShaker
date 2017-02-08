@@ -175,7 +175,7 @@
     }
     .sidebutton{
 
-        padding:5%;
+        padding:10px;
         background-color: white;
         border-right: 1px solid lightgray;
     }
@@ -220,10 +220,12 @@
         background-color: #f1f9fe;
         border-top: 1px solid lightgray;
         border-bottom: 1px solid lightgray;
-        padding:10px;
+        padding-left:10px;
+        padding-top:10px;
+        padding-bottom:10px;
     }
     .v-slot-mainviewframe{
-        webkit-transition: all 0.5s ease-in-out;
+        -webkit-transition: all 0.5s ease-in-out;
         -moz-transition: all 0.5s ease-in-out;
         -o-transition: all 0.5s ease-in-out;
         transition: all 0.5s ease-in-out;
@@ -234,13 +236,17 @@
         border-bottom-left-radius: 0px;
     }
     .toolviewframe{
-        background-color:white;
-        border-radius:5px;
-        border: 1px solid lightgray;
+
         -webkit-transition: all 0.5s ease-in-out;
         -moz-transition: all 0.5s ease-in-out;
         -o-transition: all 0.5s ease-in-out;
         transition: all 0.5s ease-in-out;
+    }
+    .framedpanel{
+        background-color:white;
+        border-radius:5px;
+        border: 1px solid lightgray;
+
     }
     .hidepanel{
         width:0px !important;
@@ -309,16 +315,24 @@
     .maxheight80{
         max-height: 80px !important;
     }
-    .historypopuplabel{
+    .historypopuplabel {
         background-color: lightgray !important;
+        background-image:url("img/historylabel.png");
+        background-repeat:no-repeat;
+        background-size:70% auto;
+        background-position:30% 10px;
         border: 2px solid gray;
         border-radius: 3px;
         cursor: pointer;
-
     }
+
     .historypopuplabel :hover {
         background-color: #4d749f !important;
-        overflow:hidden;
+        background-image:url("img/historylabel.png");
+        background-repeat:no-repeat;
+        background-size:70% auto;
+        background-position:30% 10px;
+        overflow: hidden;
     }
     .historylabel  {
         text-decoration: none !important;
@@ -333,17 +347,19 @@
         height:auto !important;
         overflow:hidden;
     }
-    .rightmovablepanel{
-        background-color: #ffffff;
-        border: 1px solid lightgray;
-        border-radius:5px;
+    .v-slot-rightmovablepanel{
+        margin-left:-10px !important;
+    }
+    .rightmovablepanel {
+        padding-left:10px;
+        padding-bottom:0px;
+        border-radius: 5px;
         position: relative !important;
         -webkit-transition: all 0.5s ease-in-out;
         -moz-transition: all 0.5s ease-in-out;
         -o-transition: all 0.5s ease-in-out;
         transition: all 0.5s ease-in-out;
     }
-
 
     .hidepanel{
         width:0px !important;
@@ -407,5 +423,111 @@
         color:white !important;
         text-decoration:none !important;
         cursor:url(img/download.svg), auto;
+    }
+
+    .startworkflow{	
+        background-image: url("img/plainblackdot.png"),url("img/gray-dott-line.png");
+	background-repeat: no-repeat no-repeat, no-repeat no-repeat;
+	background-position: center,right;
+	background-size: contain,50% auto;
+	cursor: pointer;
+	border-radius: 5px;
+	/*background-color: whitesmoke;*/
+        border: 1px solid whitesmoke;;
+	border-right-color: lightgray;
+    }
+    .startworkflow:hover {
+        background-color:lightgray;
+        border-color: gray;
+
+
+    }
+    .searchguiicon{
+       	background-image:url("img/searchgui.ico"), url("img/whitesmokebackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+        background-repeat: no-repeat;
+        background-position:center,center, left,right;
+        background-size:30% auto,40% auto, 50% auto,50% auto;
+        cursor: pointer;
+        border-radius: 5px;
+        background-color: whitesmoke;
+        border-right: 1px solid lightgray;
+        border-left: 1px solid lightgray;
+    }
+    .searchguiicon:hover {
+        background-color: lightgray;
+        border-color: gray;
+        background-image:url("img/searchgui.ico"), url("img/lightgraybackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+
+    }
+    .processicon {
+	background-image: url(img/reddot.png), url("img/whitebackground.png"), url("img/gray-dott-line.png"), url("img/gray-dott-line.png");
+	background-repeat: no-repeat;
+	background-position: center, center, left, right;
+	background-size: 30%, 40% auto, 50% auto, 50% auto;
+	border-right: 1px solid lightgray;
+	border-left: 1px solid lightgray;
+        border-radius: 5px;
+}
+   .activeprocessicon {
+	background-image: url(img/spinner.gif), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/gray-dott-line.png");
+	background-repeat: no-repeat;
+	background-position: center, center, left, right;
+	background-size: auto, 40% auto, 50% auto, 50% auto;
+	border-right: 1px solid lightgray;
+	border-left: 1px solid lightgray;
+        border-radius: 5px;
+}
+ .doneprocessicon {
+	background-image: url(img/greendot.png), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/black-dotted-line-png-2.png");
+	background-repeat: no-repeat;
+	background-position: center, center, left, right;
+	background-size: 30%, 40% auto, 50% auto, 50% auto;
+	border-right: 1px solid lightgray;
+	border-left: 1px solid lightgray;
+        border-radius: 5px;
+}
+    .peptideshakericon{
+        background-image:url("img/peptideshaker.png"), url("img/whitesmokebackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+        background-repeat: no-repeat;
+        background-position:center,center, left,right;
+        background-size:30% auto,40% auto, 50% auto,50% auto;
+        cursor: pointer;
+        border-radius: 5px;
+        background-color: whitesmoke;
+        border-right: 1px solid lightgray;
+        border-left: 1px solid lightgray;
+    }
+    .peptideshakericon:hover {
+        background-color: lightgray;
+        border: 1px solid gray;
+        background-image:url("img/peptideshaker.png"), url("img/lightgraybackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+
+    }
+    .endworkflow{	
+        background-image:url("img/blackdot.png"), url("img/gray-dott-line.png");
+        background-repeat: no-repeat no-repeat, no-repeat no-repeat;
+	background-position: center,left;
+	background-size: contain,50% auto;
+	cursor: pointer;
+	border-radius: 5px;
+        background-color: whitesmoke;
+	border: 1px solid whitesmoke;
+        border-right-color: lightgray;
+
+    }
+    .endworkflow:hover {
+        background-color:lightgray;
+        border-color: gray;
+
+
+    }
+    .deactivate{
+        opacity: 0.2;
+    }
+    .deactivate:hover{
+        opacity: 0.8;
+    }
+    .apply{
+        border:2px solid black;
     }
 }

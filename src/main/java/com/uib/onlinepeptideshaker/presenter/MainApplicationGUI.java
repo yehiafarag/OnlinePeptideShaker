@@ -105,7 +105,7 @@ public class MainApplicationGUI extends VerticalLayout {
         headerLayoutContainer.addComponent(peptideShakerLogoIcon);
         headerLayoutContainer.setComponentAlignment(peptideShakerLogoIcon, Alignment.MIDDLE_LEFT);
 
-        Link headerLogoLabel = new Link("Peptide Shaker <font>(Online Version)</font>", new ExternalResource(""));
+        Link headerLogoLabel = new Link("PeptideShaker <font>(Online Version)</font>", new ExternalResource(""));
         headerLayoutContainer.addComponent(headerLogoLabel);
         headerLogoLabel.setCaptionAsHtml(true);
         headerLayoutContainer.setComponentAlignment(headerLogoLabel, Alignment.MIDDLE_LEFT);
