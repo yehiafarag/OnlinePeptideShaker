@@ -1,7 +1,9 @@
 package com.uib.onlinepeptideshaker.presenter;
 
 import com.uib.onlinepeptideshaker.managers.RegistrableView;
+import com.uib.onlinepeptideshaker.model.LogicLayer;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
+import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.server.ThemeResource;
@@ -10,7 +12,9 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import java.util.Iterator;
 
 /**
@@ -19,7 +23,7 @@ import java.util.Iterator;
  *
  * @author Yehia Farag
  */
-public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.LayoutClickListener {
+public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.LayoutClickListener {
 
     /**
      * Main view layout extender.
@@ -38,6 +42,10 @@ public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.
      */
     private final WebTool searchGUITool;
     /**
+     * PeptideShaker web tool.
+     */
+    private final WebTool peptideShakerTool;
+    /**
      * Initialize web tool.
      */
     private boolean initSearchGUITool = true;
@@ -45,14 +53,32 @@ public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.
      * Top layout (tools button container).
      */
     private HorizontalLayout topPanel;
+    /**
+     * Last selected top button.
+     */
+    private Component lastSelectedBtn;
+    /**
+     * Work flow input layout.
+     */
+    private WorkFlowForm workFlowForm ;
+     /**
+     * Welcome page for tools.
+     */
+    private VerticalLayout welcomePage;
+      /**
+     * The galaxy server logic layer.
+     */
+    private final LogicLayer LOGIC_LAYER;
 
     /**
      * Initialize the web tool main attributes
      *
      * @param searchGUITool SearchGUI web tool
      */
-    public SearchGUIWebToolPresenter(WebTool searchGUITool) {
-        this.searchGUITool = searchGUITool;
+    public WebVisualizationPresenter(LogicLayer LOGIC_LAYER) {
+        this.searchGUITool = LOGIC_LAYER.getSearch_GUI_Tool();
+        this.peptideShakerTool = LOGIC_LAYER.getPeptide_Shaker_Tool();
+        this.LOGIC_LAYER = LOGIC_LAYER;
         
         this.mainViewPanel = new VerticalLayout();
         initializeMainViewPanel();
@@ -66,17 +92,13 @@ public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.
         extender.setSizeFull();
         extender.addStyleName("sidebuttonframe");
         Image icon = new Image();
-        icon.setSource(new ThemeResource("img/searchgui.ico"));
+        icon.setSource(new ThemeResource("img/graph.png"));
         icon.setWidth(100, Unit.PERCENTAGE);
         extender.addComponent(icon);
         extender.setComponentAlignment(icon, Alignment.MIDDLE_CENTER);
         extender.setExpandRatio(icon, 8);
-        this.sideButton.setData(SearchGUIWebToolPresenter.this.getViewId());
-        icon.setData(SearchGUIWebToolPresenter.this.getViewId());
-        if (searchGUITool == null) {
-            sideButton.setEnabled(false);
-            return;
-        }
+        this.sideButton.setData(WebVisualizationPresenter.this.getViewId());
+        icon.setData(WebVisualizationPresenter.this.getViewId());
         
     }
 
@@ -92,52 +114,79 @@ public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.
         topPanel = new HorizontalLayout();
         topPanel.setSizeFull();
         topPanel.setStyleName("framedpanel");
-        this.mainViewPanel.addComponent(topPanel);
-        this.mainViewPanel.setExpandRatio(topPanel, 10);
+//        this.mainViewPanel.addComponent(topPanel);
+//        this.mainViewPanel.setExpandRatio(topPanel, 10);
         
         VerticalLayout startWorkFlowIcon = new VerticalLayout();
         startWorkFlowIcon.setSizeFull();
         startWorkFlowIcon.setStyleName("startworkflow");
-        startWorkFlowIcon.setData(1);
+        if (this.peptideShakerTool != null && this.searchGUITool != null) {
+            startWorkFlowIcon.setData(1);
+        } else {
+            startWorkFlowIcon.setEnabled(false);
+            startWorkFlowIcon.addStyleName("deactivatepermanent");
+        }
+        
         topPanel.addComponent(startWorkFlowIcon);
         
         VerticalLayout searchGUIIcon = new VerticalLayout();
         searchGUIIcon.setSizeFull();
         searchGUIIcon.setStyleName("searchguiicon");
-        searchGUIIcon.setData(2);
+         if (this.searchGUITool != null) {           
+            searchGUIIcon.setData(2);
+        } else {
+            searchGUIIcon.setEnabled(false);
+            searchGUIIcon.addStyleName("deactivatepermanent");
+        }
+        
         topPanel.addComponent(searchGUIIcon);
         
-        VerticalLayout firstprocess = new VerticalLayout();
-        firstprocess.setSizeFull();
-        firstprocess.setStyleName("processicon");
-        firstprocess.setData(-1);
-        topPanel.addComponent(firstprocess);
         
+        
+       
+
         VerticalLayout peptideShakerIcon = new VerticalLayout();
-        peptideShakerIcon.setSizeFull();
-        peptideShakerIcon.setData(3);
+        peptideShakerIcon.setSizeFull(); 
         peptideShakerIcon.setStyleName("peptideshakericon");
-        topPanel.addComponent(peptideShakerIcon);
+         if (this.peptideShakerTool != null) {           
+            peptideShakerIcon.setData(3);
+        } else {
+            peptideShakerIcon.setEnabled(false);
+            peptideShakerIcon.addStyleName("deactivatepermanent");
+        }       
+        topPanel.addComponent(peptideShakerIcon); 
+        topPanel.addLayoutClickListener(WebVisualizationPresenter.this);
         
-        VerticalLayout secondProcess = new VerticalLayout();
-        secondProcess.setSizeFull();
-        secondProcess.setData(-2);
-        secondProcess.setStyleName("processicon");
-        secondProcess.setEnabled(false);
-        topPanel.addComponent(secondProcess);
-        
-        VerticalLayout endWorkFlowIcon = new VerticalLayout();
-        endWorkFlowIcon.setSizeFull();
-        endWorkFlowIcon.setData(-3);
-        endWorkFlowIcon.setStyleName("endworkflow");
-        topPanel.addComponent(endWorkFlowIcon);
-        topPanel.addLayoutClickListener(SearchGUIWebToolPresenter.this);
-        
-        HorizontalLayout inputPanel = new HorizontalLayout();
+        AbsoluteLayout inputPanel = new AbsoluteLayout();
         inputPanel.setSizeFull();
         inputPanel.setStyleName("framedpanel");
         this.mainViewPanel.addComponent(inputPanel);
         this.mainViewPanel.setExpandRatio(inputPanel, 90);
+        
+        welcomePage = new VerticalLayout();
+        welcomePage.setSizeFull();        
+        Label welcomeLabel = new Label("Under processing!");
+        welcomeLabel.setWidth(50,Unit.PERCENTAGE);
+        welcomeLabel.setHeight(50,Unit.PERCENTAGE);
+        welcomeLabel.setStyleName(ValoTheme.LABEL_HUGE);
+        welcomePage.addComponent(welcomeLabel);
+        welcomePage.setComponentAlignment(welcomeLabel, Alignment.MIDDLE_CENTER);
+        
+        
+        
+         inputPanel.addComponent(welcomePage);
+         mainViewPanel.addStyleName("hidepanel");
+         
+//        workFlowForm = new WorkFlowForm(){
+//            @Override
+//            public void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
+//                LOGIC_LAYER.executeWorkFlow(fastaFileId, mgfIdsList, searchEnginesList);
+//            }
+//            
+//        
+//        };
+//        inputPanel.addComponent(workFlowForm);
+//        workFlowForm.setVisible(false);
         
     }
     
@@ -176,27 +225,45 @@ public class SearchGUIWebToolPresenter implements RegistrableView, LayoutEvents.
     @Override
     public void layoutClick(LayoutEvents.LayoutClickEvent event) {
         Component comp = event.getClickedComponent();
+        if (comp == lastSelectedBtn) {
+            lastSelectedBtn = null;
+            Iterator<Component> itr = topPanel.iterator();
+            while (itr.hasNext()) {
+                Component btn = itr.next();
+                btn.removeStyleName("deactivate");
+                btn.removeStyleName("apply");
+            }
+            welcomePage.setVisible(true);
+             workFlowForm.setVisible(false);
+            return;
+        }
         if (comp instanceof VerticalLayout) {
+            lastSelectedBtn = comp;
             Integer index = ((Integer) ((VerticalLayout) comp).getData());
             if (index != null && index > 0) {
-                Iterator<Component>itr=topPanel.iterator();
+                welcomePage.setVisible(false);
+                Iterator<Component> itr = topPanel.iterator();
                 while (itr.hasNext()) {
                     Component btn = itr.next();
-                    btn.addStyleName("deactivate");  
+                    btn.addStyleName("deactivate");
                     btn.removeStyleName("apply");
                 }
                 comp.removeStyleName("deactivate");
                 comp.addStyleName("apply");
+                 workFlowForm.setVisible(false);
                 switch (index) {
                     case 1:
                         //initialize workflow and input form
+                        workFlowForm.setVisible(true);
                         //view work flow input form
+                        workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
                         break;
                     case 2:
-                          //view searchGUI input form
+                        //view searchGUI input form
+                        
                         break;
                     case 3:
-                         //view PeptideShaker input form
+                        //view PeptideShaker input form
                         break;
                     default:
                         break;

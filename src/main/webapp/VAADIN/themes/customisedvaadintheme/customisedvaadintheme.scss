@@ -71,6 +71,32 @@
     src: url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.eot);
     src: url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.eot?#iefix) format("embedded-opentype"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.woff) format("woff"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.ttf) format("truetype"), url(../valo/util/bourbon/css3/../../../../base/fonts/fontawesome-webfont.svg#FontAwesome) format("svg");
 }
+@keyframes blink { 
+    50% {        border-color: orange; 
+                 border-width:2px;
+
+
+                 /* CSS3 Transition */
+                 -webkit-transition: all .5s ease-in-out;
+                 -moz-transition: all .5s ease-in-out;
+                 -o-transition: all .5s ease-in-out;
+                 transition: all .5s ease-in-out;
+    } 
+}
+
+
+
+@keyframes blinkII { 
+    50% {        border-color: orange; 
+                 border-width:2px;
+
+                 /* CSS3 Transition */
+                 -webkit-transition: all .5s ease-in-out;
+                 -moz-transition: all .5s ease-in-out;
+                 -o-transition: all .5s ease-in-out;
+                 transition: all .5s ease-in-out;
+    } 
+}
 @mixin customisedvaadintheme {
     @include valo;
     @include vaadin-icons;
@@ -386,6 +412,10 @@
     .v-slot-standredcombobox{
         min-height: 27px !important;
     }
+    .v-slot-standredcomboboxwithcaption{
+        min-height: 50px !important;
+    }
+
     .deletablelabel{
         background-color:gray;
         color:white;
@@ -426,15 +456,14 @@
     }
 
     .startworkflow{	
-        background-image: url("img/plainblackdot.png"),url("img/gray-dott-line.png");
-	background-repeat: no-repeat no-repeat, no-repeat no-repeat;
-	background-position: center,right;
-	background-size: contain,50% auto;
-	cursor: pointer;
-	border-radius: 5px;
-	/*background-color: whitesmoke;*/
-        border: 1px solid whitesmoke;;
-	border-right-color: lightgray;
+        background-image: url("img/workflow.png");
+        background-repeat: no-repeat no-repeat;
+        background-position: center;
+        background-size: auto 90%;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid white;
+        border-right-color: lightgray;
     }
     .startworkflow:hover {
         background-color:lightgray;
@@ -443,75 +472,76 @@
 
     }
     .searchguiicon{
-       	background-image:url("img/searchgui.ico"), url("img/whitesmokebackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+       	background-image:url("img/searchgui.ico");
         background-repeat: no-repeat;
-        background-position:center,center, left,right;
-        background-size:30% auto,40% auto, 50% auto,50% auto;
+        background-position:center;
+        background-size: auto 95%;
         cursor: pointer;
         border-radius: 5px;
-        background-color: whitesmoke;
+        background-color: white;
+        border:1px solid white;
         border-right: 1px solid lightgray;
         border-left: 1px solid lightgray;
     }
     .searchguiicon:hover {
         background-color: lightgray;
         border-color: gray;
-        background-image:url("img/searchgui.ico"), url("img/lightgraybackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+        /*background-image:url("img/searchgui.ico"), url("img/lightgraybackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");*/
 
     }
     .processicon {
-	background-image: url(img/reddot.png), url("img/whitebackground.png"), url("img/gray-dott-line.png"), url("img/gray-dott-line.png");
-	background-repeat: no-repeat;
-	background-position: center, center, left, right;
-	background-size: 30%, 40% auto, 50% auto, 50% auto;
-	border-right: 1px solid lightgray;
-	border-left: 1px solid lightgray;
-        border-radius: 5px;
-}
-   .activeprocessicon {
-	background-image: url(img/spinner.gif), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/gray-dott-line.png");
-	background-repeat: no-repeat;
-	background-position: center, center, left, right;
-	background-size: auto, 40% auto, 50% auto, 50% auto;
-	border-right: 1px solid lightgray;
-	border-left: 1px solid lightgray;
-        border-radius: 5px;
-}
- .doneprocessicon {
-	background-image: url(img/greendot.png), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/black-dotted-line-png-2.png");
-	background-repeat: no-repeat;
-	background-position: center, center, left, right;
-	background-size: 30%, 40% auto, 50% auto, 50% auto;
-	border-right: 1px solid lightgray;
-	border-left: 1px solid lightgray;
-        border-radius: 5px;
-}
-    .peptideshakericon{
-        background-image:url("img/peptideshaker.png"), url("img/whitesmokebackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
+        background-image: url(img/reddot.png), url("img/whitebackground.png"), url("img/gray-dott-line.png"), url("img/gray-dott-line.png");
         background-repeat: no-repeat;
-        background-position:center,center, left,right;
-        background-size:30% auto,40% auto, 50% auto,50% auto;
+        background-position: center, center, left, right;
+        background-size: 30%, 40% auto, 50% auto, 50% auto;
+        border-right: 1px solid lightgray;
+        border-left: 1px solid lightgray;
+        border-radius: 5px;
+    }
+    .activeprocessicon {
+        background-image: url(img/spinner.gif), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/gray-dott-line.png");
+        background-repeat: no-repeat;
+        background-position: center, center, left, right;
+        background-size: auto, 40% auto, 50% auto, 50% auto;
+        border-right: 1px solid lightgray;
+        border-left: 1px solid lightgray;
+        border-radius: 5px;
+    }
+    .doneprocessicon {
+        background-image: url(img/greendot.png), url("img/whitebackground.png"), url("img/black-dotted-line-png-2.png"), url("img/black-dotted-line-png-2.png");
+        background-repeat: no-repeat;
+        background-position: center, center, left, right;
+        background-size: 30%, 40% auto, 50% auto, 50% auto;
+        border-right: 1px solid lightgray;
+        border-left: 1px solid lightgray;
+        border-radius: 5px;
+    }
+    .peptideshakericon{
+        background-image:url("img/peptideshaker.png");
+        background-repeat: no-repeat;
+        background-position:center;
+        background-size: auto 95%;
         cursor: pointer;
         border-radius: 5px;
-        background-color: whitesmoke;
+        background-color: white;
+        border:1px solid white;
         border-right: 1px solid lightgray;
         border-left: 1px solid lightgray;
     }
     .peptideshakericon:hover {
         background-color: lightgray;
         border: 1px solid gray;
-        background-image:url("img/peptideshaker.png"), url("img/lightgraybackground.png"), url("img/gray-dott-line.png"),url("img/gray-dott-line.png");
 
     }
     .endworkflow{	
         background-image:url("img/blackdot.png"), url("img/gray-dott-line.png");
         background-repeat: no-repeat no-repeat, no-repeat no-repeat;
-	background-position: center,left;
-	background-size: contain,50% auto;
-	cursor: pointer;
-	border-radius: 5px;
-        background-color: whitesmoke;
-	border: 1px solid whitesmoke;
+        background-position: center,left;
+        background-size: 15%,50% auto;
+        cursor: pointer;
+        border-radius: 5px;
+        background-color: white;
+        border: 1px solid white;
         border-right-color: lightgray;
 
     }
@@ -527,7 +557,47 @@
     .deactivate:hover{
         opacity: 0.8;
     }
+    .deactivatepermanent{
+        opacity: 0.2;
+    }
     .apply{
-        border:2px solid black;
+        background-color:lightgray;
+        border-color: gray;
+    }
+    .margintop10{
+        margin-top:10px;
+        padding-bottom:10px;
+    }
+    .v-absolutelayout-wrapper-toolviewframe.v-absolutelayout-wrapper-hidepanel{
+        background-color:red !important;
+        width: 0px !important;
+        height: 0px !important;
+    }
+    .blink{ 
+        animation-name: blink !important;
+        animation-duration: .5s !important;
+        animation-timing-function: step-end !important;
+        animation-iteration-count: 12 !important;
+        animation-direction: alternate !important;
+
+    }
+    .blinkII{ 
+        animation-name: blinkII !important;
+        animation-duration: .5s !important;
+        animation-timing-function: step-end !important;
+        animation-iteration-count: 12 !important;
+        animation-direction: alternate !important;
+
+    }
+    .maxwidth100{
+        max-width:100px !important;
+
+    }
+    .maxheight25{
+        max-height:25px !important;
+    }
+    .v-filterselect-standredcomboboxwithcaption{
+        max-height:25px;
+        font-size:13px;
     }
 }

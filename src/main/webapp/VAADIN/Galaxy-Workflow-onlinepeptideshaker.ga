@@ -1,0 +1,195 @@
+{
+    "a_galaxy_workflow": "true", 
+    "annotation": "", 
+    "format-version": "0.1", 
+    "name": "onlinepeptideshaker", 
+    "steps": {
+        "0": {
+            "annotation": "", 
+            "content_id": null, 
+            "id": 0, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "input_dataset_1"
+                }
+            ], 
+            "label": "input_dataset_1", 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 190, 
+                "top": 130.3000030517578
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"input_dataset_1\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "uuid": "cac6101f-0b49-47b4-8982-4c7f95fd5cea", 
+            "workflow_outputs": []
+        }, 
+        "1": {
+            "annotation": "", 
+            "content_id": null, 
+            "id": 1, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "input_dataset_2"
+                }
+            ], 
+            "label": "input_dataset_2", 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 199.97500610351562, 
+                "top": 279.3000183105469
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"input_dataset_2\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "uuid": "0b19798d-8ed9-4885-bc81-ba7530b4f5ee", 
+            "workflow_outputs": []
+        }, 
+        "2": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/galaxyp/peptideshaker/search_gui/2.9.0", 
+            "id": 2, 
+            "input_connections": {
+                "input_database": {
+                    "id": 0, 
+                    "output_name": "output"
+                }, 
+                "peak_lists": {
+                    "id": 1, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Search GUI", 
+                    "name": "peak_lists"
+                }, 
+                {
+                    "description": "runtime parameter for tool Search GUI", 
+                    "name": "input_database"
+                }
+            ], 
+            "label": null, 
+            "name": "Search GUI", 
+            "outputs": [
+                {
+                    "name": "searchgui_results", 
+                    "type": "searchgui_archive"
+                }
+            ], 
+            "position": {
+                "left": 495.2124938964844, 
+                "top": 272
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/galaxyp/peptideshaker/search_gui/2.9.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "78fad25eff17", 
+                "name": "peptideshaker", 
+                "owner": "galaxyp", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"msgf\": \"{\\\"msgf_advanced\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"use_gene_mapping\": \"\\\"false\\\"\", \"min_charge\": \"\\\"2\\\"\", \"__page__\": 0, \"peak_lists\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"engines\": \"[\\\"X!Tandem\\\", \\\"MSGF\\\", \\\"OMSSA\\\"]\", \"__rerun_remap_job_id__\": null, \"create_decoy\": \"\\\"true\\\"\", \"enzyme\": \"\\\"Trypsin\\\"\", \"precursor_ion_tol_units\": \"\\\"1\\\"\", \"omssa\": \"{\\\"omssa_advanced\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"precursor_ion_tol\": \"\\\"10.0\\\"\", \"variable_modifications\": \"null\", \"input_database\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"fragment_tol\": \"\\\"0.5\\\"\", \"reverse_ion\": \"\\\"y\\\"\", \"forward_ion\": \"\\\"b\\\"\", \"searchgui_advanced\": \"{\\\"searchgui_advanced_selector\\\": \\\"basic\\\", \\\"__current_case__\\\": 0}\", \"xtandem\": \"{\\\"__current_case__\\\": 0, \\\"xtandem_advanced\\\": \\\"no\\\"}\", \"max_charge\": \"\\\"4\\\"\", \"fixed_modifications\": \"null\", \"comet\": \"{\\\"comet_advanced\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"missed_cleavages\": \"\\\"2\\\"\"}", 
+            "tool_version": "2.9.0", 
+            "type": "tool", 
+            "uuid": "a0146c36-76a0-4c6f-a827-f2e57ca322da", 
+            "workflow_outputs": []
+        }, 
+        "3": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/galaxyp/peptideshaker/peptide_shaker/1.11.0", 
+            "id": 3, 
+            "input_connections": {
+                "searchgui_input": {
+                    "id": 2, 
+                    "output_name": "searchgui_results"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Peptide Shaker", 
+                    "name": "searchgui_input"
+                }
+            ], 
+            "label": null, 
+            "name": "Peptide Shaker", 
+            "outputs": [
+                {
+                    "name": "mzidentML", 
+                    "type": "mzid"
+                }, 
+                {
+                    "name": "output_cps", 
+                    "type": "peptideshaker_archive"
+                }, 
+                {
+                    "name": "output_zip", 
+                    "type": "zip"
+                }, 
+                {
+                    "name": "output_certificate", 
+                    "type": "txt"
+                }, 
+                {
+                    "name": "output_hierarchical", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_psm_phosphorylation", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_psm", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_peptides_phosphorylation", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_peptides", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_proteins_phosphorylation", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "output_proteins", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 790.2250061035156, 
+                "top": 326
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/galaxyp/peptideshaker/peptide_shaker/1.11.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "78fad25eff17", 
+                "name": "peptideshaker", 
+                "owner": "galaxyp", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"outputs\": \"\\\"mzidentML\\\"\", \"__rerun_remap_job_id__\": null, \"filtering_options\": \"{\\\"filtering_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"searchgui_input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"species_type\": \"{\\\"__current_case__\\\": 0, \\\"species_type_selector\\\": \\\"no_species_type\\\"}\", \"processing_options\": \"{\\\"processing_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\"}", 
+            "tool_version": "1.11.0", 
+            "type": "tool", 
+            "uuid": "9374fcc3-0222-4df1-b6d6-9f49391ce1e3", 
+            "workflow_outputs": []
+        }
+    }, 
+    "uuid": "c07dda23-2e86-4003-ac17-a10c2f4c6b32"
+}

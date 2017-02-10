@@ -1,12 +1,10 @@
 package com.uib.onlinepeptideshaker.presenter;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
-import com.github.jmchilton.blend4j.galaxy.ToolsClient;
-import com.github.jmchilton.blend4j.galaxy.beans.User;
 import com.uib.onlinepeptideshaker.managers.VisualizationManager;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
+import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
 import com.uib.onlinepeptideshaker.presenter.view.ToolsSectionContainer;
-import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
@@ -15,7 +13,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Link;
-import com.vaadin.ui.PopupView;
 import com.vaadin.ui.VerticalLayout;
 
 /**
@@ -63,8 +60,6 @@ public class MainApplicationGUI extends VerticalLayout {
         MainApplicationGUI.this.setSpacing(true);
         MainApplicationGUI.this.setMargin(new MarginInfo(false, true, true, true));
 
-        this.LOGIC_LAYER = new LogicLayer();
-
         headerPanel = new VerticalLayout();
         headerPanel.setHeight(50, Unit.PIXELS);
         MainApplicationGUI.this.addComponent(headerPanel);
@@ -89,6 +84,14 @@ public class MainApplicationGUI extends VerticalLayout {
         MainApplicationGUI.this.setExpandRatio(bodyPanel, 70);
         MainApplicationGUI.this.setStyleName("minheight275");
         MainApplicationGUI.this.addStyleName("minwidth435");
+
+        this.LOGIC_LAYER = new LogicLayer() {
+            @Override
+            public void updateHistoryPresenter(GalaxyHistory currentGalaxyHistory) {
+                historyManagmentPresenter.updateHistoryPanels(currentGalaxyHistory);
+            }
+
+        };
 
     }
 
@@ -207,37 +210,21 @@ public class MainApplicationGUI extends VerticalLayout {
         VISUALIZATION_MANAGER.registerView(uploadToGalaxyTool);
 
         bottomRightLayoutContainer.addComponent(historyManagmentPresenter);
+      
+        WebToolsPresenter webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
+        VISUALIZATION_MANAGER.registerView(webGalaxyTools);
+        VISUALIZATION_MANAGER.viewLayout(webGalaxyTools.getViewId());
 
-//        historyLabelLayout.setCaption("");
-//        
-//        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
-//        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
-//        toolsControlSection.addComponent(new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool()).getMinimizeComponent());
-//        AbsoluteLayout lastBtton = new SearchGUIWebToolPresenter(LOGIC_LAYER.getNelsUtil_tool()).getMinimizeComponent();
-//        lastBtton.addStyleName("lastsidebtn");
-//        toolsControlSection.addComponent(lastBtton);
-//        
-        SearchGUIWebToolPresenter searchGuiTool = new SearchGUIWebToolPresenter(LOGIC_LAYER.getPeptide_Shaker_Tool());
-        VISUALIZATION_MANAGER.registerView(searchGuiTool);
-//        toolsControlSection.addComponent(searchGuiTool.getMinimizeComponent());
-////        mainViewSection.addComponent(searchGuiTool.getMainViewComponent());
-        VISUALIZATION_MANAGER.viewLayout(uploadToGalaxyTool.getViewId());
-
+        WebVisualizationPresenter webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
+        VISUALIZATION_MANAGER.registerView(webVisualization);
         return bodyPanelLayout;
 
     }
 
-    private VerticalLayout generateBtn() {
-        VerticalLayout vlo = new VerticalLayout();
-        vlo.setMargin(false);
-        vlo.setWidth(100, Unit.PERCENTAGE);
-        vlo.setHeight(100, Unit.PERCENTAGE);
-        vlo.setStyleName("frame");
-        return vlo;
-    }
-
     private void systemConnected(GalaxyInstance galaxyInstant) {
         galaxyInputPanel.minimizeView();
+        headerPanel.setVisible(false);
+        bodyPanel.addStyleName("margintop10");
         headerPanelLayout.setHeight(40, Unit.PIXELS);
         LOGIC_LAYER.initializeTheLogicLayer(galaxyInstant);
         bodyPanel.removeAllComponents();

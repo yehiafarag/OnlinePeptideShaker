@@ -40,6 +40,9 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
                 mainToolViewContainer.addStyleName("fullsize");
             }
         });
+        
+         historyManagmentPresenter.getMainHistoryPanel().addStyleName("hidepanel");
+         mainToolViewContainer.addStyleName("fullsize");
 
 //        this.mainToolViewContainer.addStyleName("topleftroundedborder");
     }
