@@ -3,6 +3,7 @@ package com.uib.onlinepeptideshaker.presenter;
 import com.uib.onlinepeptideshaker.managers.RegistrableView;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
+import com.uib.onlinepeptideshaker.presenter.view.PeptideShakerInputForm;
 import com.uib.onlinepeptideshaker.presenter.view.SearchGuiInputForm;
 import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
 import com.vaadin.event.LayoutEvents;
@@ -19,6 +20,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represent web tool presenter which is responsible for managing the
@@ -72,6 +74,14 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
      * SearchGUI input container panel.
      */
     private Panel searchGUIInpuPanel;
+     /**
+     * SearchGUI input layout.
+     */
+    private PeptideShakerInputForm peptideShakerForm;
+    /**
+     * SearchGUI input container panel.
+     */
+    private Panel peptideShakerInpuPanel;
     /**
      * Welcome page for tools.
      */
@@ -193,7 +203,7 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
 
         searchGUIForm = new SearchGuiInputForm() {
             @Override
-            public void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
+            public void executeSearchGUITool(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
                 LOGIC_LAYER.executeSearchGUITool(fastaFileId, mgfIdsList, searchEnginesList);
             }
 
@@ -206,6 +216,22 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
 
         inputPanel.addComponent(searchGUIInpuPanel);
         searchGUIInpuPanel.setVisible(false);
+        
+          peptideShakerForm = new PeptideShakerInputForm() {
+            @Override
+            public void executePeptideShakerTool(String searchGUIResultsFileId) {
+                LOGIC_LAYER.executePeptideShakerTool(searchGUIResultsFileId);
+            }   
+        };
+
+        peptideShakerInpuPanel = new Panel("<b>PeptideShaker inputs</b>", peptideShakerForm);
+        peptideShakerInpuPanel.setCaptionAsHtml(true);
+        peptideShakerInpuPanel.setStyleName(ValoTheme.PANEL_BORDERLESS);
+        searchGUIInpuPanel.setSizeFull();
+
+        inputPanel.addComponent(peptideShakerInpuPanel);
+        peptideShakerInpuPanel.setVisible(false);
+        
 
     }
 
@@ -255,6 +281,7 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
             welcomePage.setVisible(true);
             workFlowForm.setVisible(false);
             searchGUIInpuPanel.setVisible(false);
+            peptideShakerInpuPanel.setVisible(false);
             return;
         }
         if (comp instanceof VerticalLayout) {
@@ -272,6 +299,7 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
                 comp.addStyleName("apply");
                 workFlowForm.setVisible(false);
                 searchGUIInpuPanel.setVisible(false);
+                peptideShakerInpuPanel.setVisible(false);
 
                 switch (index) {
                     case 1:
@@ -287,12 +315,31 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
                         break;
                     case 3:
                         //view PeptideShaker input form
+                         peptideShakerInpuPanel.setVisible(true);
+                        //view searchGUI input form
+                        peptideShakerForm.updateForm(LOGIC_LAYER.getSearchGUIResultsFilesMap());
                         break;
                     default:
                         break;
                 }
             }
 
+        }
+    }
+
+    /**
+     * Update the forms based on the history input data.
+     *
+     * @param fastaFilesMap map of available FASTA file in the selected history
+     * @param mgfFilesMap map of available MGF files (Spectra) in the selected
+     * history
+     *
+     */
+    public void updateForm() {
+        if (workFlowForm.isVisible()) {
+            workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
+        } else if (searchGUIForm.isVisible()) {
+            searchGUIForm.updateForm(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
         }
     }
 

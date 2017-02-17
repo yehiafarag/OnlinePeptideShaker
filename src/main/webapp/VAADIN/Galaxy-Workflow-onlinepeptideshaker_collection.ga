@@ -2,7 +2,7 @@
     "a_galaxy_workflow": "true", 
     "annotation": "", 
     "format-version": "0.1", 
-    "name": "onlinepeptideshaker", 
+    "name": "onlinepeptideshaker_collection", 
     "steps": {
         "0": {
             "annotation": "", 
@@ -19,8 +19,8 @@
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 221.21249389648438, 
-                "top": 292
+                "left": 199.97500610351562, 
+                "top": 339.3125
             }, 
             "tool_errors": null, 
             "tool_id": null, 
@@ -32,7 +32,7 @@
                 {
                     "label": null, 
                     "output_name": "output", 
-                    "uuid": "3f815408-c566-4c8b-8828-de7e9e6a4046"
+                    "uuid": "00d6b44d-bc34-4429-a7c3-0f60865b5967"
                 }
             ]
         }, 
@@ -44,27 +44,27 @@
             "inputs": [
                 {
                     "description": "", 
-                    "name": "input_dataset_2"
+                    "name": "input_dataset_2_collection"
                 }
             ], 
-            "label": "input_dataset_2", 
-            "name": "Input dataset", 
+            "label": "input_dataset_2_collection", 
+            "name": "Input dataset collection", 
             "outputs": [], 
             "position": {
-                "left": 201.97500610351562, 
-                "top": 410.3000183105469
+                "left": 160.57501220703125, 
+                "top": 494.6125183105469
             }, 
             "tool_errors": null, 
             "tool_id": null, 
-            "tool_state": "{\"name\": \"input_dataset_2\"}", 
+            "tool_state": "{\"collection_type\": \"list\", \"name\": \"input_dataset_2_collection\"}", 
             "tool_version": null, 
-            "type": "data_input", 
-            "uuid": "b76f13b4-d078-4ad7-b350-540d938b59b0", 
+            "type": "data_collection_input", 
+            "uuid": "a0b4ab71-b06c-4f06-81cb-806447f856b1", 
             "workflow_outputs": [
                 {
                     "label": null, 
                     "output_name": "output", 
-                    "uuid": "4fd8af7a-bc3a-4709-9eb3-9550e0897fef"
+                    "uuid": "b2600ca7-38e5-4d9b-842b-b31c4b18b90b"
                 }
             ]
         }, 
@@ -101,8 +101,8 @@
                 }
             ], 
             "position": {
-                "left": 466.42498779296875, 
-                "top": 381.70001220703125
+                "left": 459.25, 
+                "top": 200
             }, 
             "post_job_actions": {
                 "HideDatasetActionsearchgui_results": {
@@ -190,8 +190,8 @@
                 }
             ], 
             "position": {
-                "left": 494.4375, 
-                "top": 138.6999969482422
+                "left": 276.25, 
+                "top": 325.0124969482422
             }, 
             "post_job_actions": {
                 "HideDatasetActionmzidentML": {
@@ -219,15 +219,15 @@
                     "action_type": "HideDatasetAction", 
                     "output_name": "output_peptides_phosphorylation"
                 }, 
+                "HideDatasetActionoutput_proteins": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_proteins"
+                }, 
                 "HideDatasetActionoutput_proteins_phosphorylation": {
                     "action_arguments": {}, 
                     "action_type": "HideDatasetAction", 
                     "output_name": "output_proteins_phosphorylation"
-                }, 
-                "HideDatasetActionoutput_psm": {
-                    "action_arguments": {}, 
-                    "action_type": "HideDatasetAction", 
-                    "output_name": "output_psm"
                 }, 
                 "HideDatasetActionoutput_psm_phosphorylation": {
                     "action_arguments": {}, 
@@ -255,16 +255,16 @@
             "workflow_outputs": [
                 {
                     "label": null, 
-                    "output_name": "output_proteins", 
-                    "uuid": "488d70df-d74b-40ef-babe-a72bc51d1575"
+                    "output_name": "output_psm", 
+                    "uuid": "ffd1646d-0ea1-4339-8b8f-603fd43af4b4"
                 }, 
                 {
                     "label": null, 
                     "output_name": "output_peptides", 
-                    "uuid": "475d888c-d264-4af5-bf31-fbaa23ea6985"
+                    "uuid": "0978e402-de11-4332-bcc9-8d56bfd66f35"
                 }
             ]
         }
     }, 
-    "uuid": "0f1e688c-d836-45c7-a7fa-b3384ba8c436"
+    "uuid": "beb0880f-3ce1-4f5f-b8ba-8723974f73d3"
 }

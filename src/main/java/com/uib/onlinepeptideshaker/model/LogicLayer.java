@@ -1,6 +1,7 @@
 package com.uib.onlinepeptideshaker.model;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
+import com.github.jmchilton.blend4j.galaxy.HistoriesClient;
 import com.github.jmchilton.blend4j.galaxy.ToolsClient;
 import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
 import com.github.jmchilton.blend4j.galaxy.beans.History;
@@ -9,28 +10,46 @@ import com.github.jmchilton.blend4j.galaxy.beans.HistoryDataset;
 import com.github.jmchilton.blend4j.galaxy.beans.Tool;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolExecution;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolInputs;
+import com.github.jmchilton.blend4j.galaxy.beans.ToolParameter;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolSection;
 import com.github.jmchilton.blend4j.galaxy.beans.Workflow;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowInputs;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowInputs.WorkflowInput;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowOutputs;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.request.CollectionDescription;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.request.HistoryDatasetElement;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.response.CollectionResponse;
+import com.github.wolfie.refresher.Refresher;
+import static com.sun.org.apache.xerces.internal.util.PropertyState.is;
 import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
+import com.uib.onlinepeptideshaker.model.beans.IndexPoint;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
-import static com.vaadin.server.Sizeable.Unit.values;
 import com.vaadin.server.VaadinService;
+import java.awt.Point;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import static jdk.nashorn.internal.objects.NativeJava.type;
-import static jdk.nashorn.internal.objects.NativeJava.type;
-import static jdk.nashorn.internal.objects.NativeJava.type;
-import static jdk.nashorn.internal.objects.NativeJava.type;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
 
 /**
  * This class represents the business logic layer (BLL) where the main
@@ -44,6 +63,10 @@ public abstract class LogicLayer {
      * FASTA files map.
      */
     private final Map<String, String> fastaFilesMap;
+    /**
+     * SearchGUIResults files map.
+     */
+    private final Map<String, String> searchGUIResultsFilesMap;
     /**
      * MGF (spectra) files map.
      */
@@ -69,18 +92,36 @@ public abstract class LogicLayer {
      * Galaxy NelsUtil_tool tool.
      */
     private WebTool nelsUtil_tool;
+    private Tool selectTool;
     /**
      * Galaxy History bean.
      */
     private GalaxyHistory currentGalaxyHistory;
+    /**
+     * PeptideShaker results to view map.
+     */
+    private final Map<String, String[]> peptideShakerVisualizationMap;
+
+    private CollectionResponse collectionResponse;
+
+    private History jobsHistory;
+
+    private final Refresher REFRESHER;
+
+//    private String bigFileId = "18436e3c3b81a0be";
+    private HashMap<String, IndexPoint> peptideIndexes;
 
     /**
      * Initialize the main logic layer
      *
      */
-    public LogicLayer() {
+    public LogicLayer(Refresher REFRESHER) {
         fastaFilesMap = new LinkedHashMap<>();
         mgfFilesMap = new LinkedHashMap<>();
+        searchGUIResultsFilesMap = new LinkedHashMap<>();
+        peptideShakerVisualizationMap = new LinkedHashMap<>();
+        this.REFRESHER = REFRESHER;
+        peptideIndexes = getIndexMap();
     }
 
     /**
@@ -121,6 +162,7 @@ public abstract class LogicLayer {
         this.initializeToolsModel();
         this.currentGalaxyHistory = new GalaxyHistory();
         this.initGalaxyHistory(null);
+
     }
 
     /**
@@ -137,7 +179,9 @@ public abstract class LogicLayer {
                 if (galaxyTool.getName() == null) {
                     continue;
                 }
-                if (galaxyTool.getLink().contains("toolshed.g2.bx.psu.edu%2Frepos%2Fgalaxyp%2Fpeptideshaker%2Fsearch_gui%2F2.9.0")) {
+                if (galaxyTool.getLink().contains("/tool_runner?tool_id=Grep1")) {
+                    selectTool = galaxyTool;
+                } else if (galaxyTool.getLink().contains("toolshed.g2.bx.psu.edu%2Frepos%2Fgalaxyp%2Fpeptideshaker%2Fsearch_gui%2F2.9.0")) {
                     if (Search_GUI_Tool == null) {
                         Search_GUI_Tool = new WebTool();
                     }
@@ -179,19 +223,27 @@ public abstract class LogicLayer {
 
         fastaFilesMap.clear();
         mgfFilesMap.clear();
+        peptideShakerVisualizationMap.clear();
         if (historyId == null) {
+            if (GALAXY_INSTANCE.getHistoriesClient().getHistories().isEmpty()) {
+                GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-History"));
+            }
             currentGalaxyHistory.setUsedHistoryId(GALAXY_INSTANCE.getHistoriesClient().getHistories().get(0).getId());
         } else {
             currentGalaxyHistory.setUsedHistoryId(historyId);
         }
         Map<String, String> historySecMap = new LinkedHashMap<>();
         for (History history : GALAXY_INSTANCE.getHistoriesClient().getHistories()) {
+            if (!history.getName().equals("Web-Peptideshaker") && !history.getName().equals("Online-PeptideShaker-History")) {
+                GALAXY_INSTANCE.getHistoriesClient().deleteHistory(history.getId());
+                GALAXY_INSTANCE.getHistoriesClient().deleteHistoryRequest(history.getId());
+            }
             historySecMap.put(history.getId(), history.getName());
             if (history.getId().equalsIgnoreCase(currentGalaxyHistory.getUsedHistoryId())) {
                 currentGalaxyHistory.setUsedHistory(history);
             }
         }
-
+        int index = 1;
         currentGalaxyHistory.setAvailableGalaxyHistoriesMap(historySecMap);
         Map<String, HistoryContents> galaxyDatasetMap = new LinkedHashMap<>();
         for (HistoryContents content : GALAXY_INSTANCE.getHistoriesClient().showHistoryContents(currentGalaxyHistory.getUsedHistoryId())) {
@@ -199,16 +251,45 @@ public abstract class LogicLayer {
                 continue;
             }
             Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), content.getId());
-            content.setHistoryContentType(GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), content.getId()).getDataTypeExt());
+            if (!ds.getState().equalsIgnoreCase("ok")) {
+                trackHistory(content.getId());
+            }
+            if (ds.getDataTypeExt().equalsIgnoreCase("tabular")) {
+                String jobId = GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), content.getId()).getJobId();
+
+                String[] arr;
+                if (this.peptideShakerVisualizationMap.containsKey(jobId)) {
+                    arr = this.peptideShakerVisualizationMap.get(jobId);
+                } else {
+                    arr = new String[2];                    
+                }
+                if (ds.getName().endsWith("Peptide Report")) {
+                    arr[1] = ds.getId();
+                    this.peptideShakerVisualizationMap.put(jobId, arr);
+                } else if (ds.getName().endsWith("Protein Report")) {
+                    arr[0] = ds.getId();
+                    this.peptideShakerVisualizationMap.put(jobId, arr);
+                } else {
+//                    this.peptideShakerVisualizationMap.remove(jobId);
+                }
+            }
+
+            content.setHistoryContentType(ds.getDataTypeExt());
             if (content.getHistoryContentType().equalsIgnoreCase("fasta")) {
-                fastaFilesMap.put(ds.getId(), ds.getName());
+                fastaFilesMap.put(ds.getId(), (index) + " - " + ds.getName());
             } else if (content.getHistoryContentType().equalsIgnoreCase("mgf")) {
-                mgfFilesMap.put(ds.getId(), ds.getName());
+                mgfFilesMap.put(ds.getId(), (index) + " - " + ds.getName());
+            } else if (content.getHistoryContentType().equalsIgnoreCase("searchgui_archive")) {
+                searchGUIResultsFilesMap.put(ds.getId(), (index) + " - " + ds.getName());
             }
             content.setUrl(ds.getFullDownloadUrl());
+            content.setName((index++) + " - " + ds.getName());
             galaxyDatasetMap.put(content.getId(), content);
         }
         currentGalaxyHistory.setHistoryDatasetsMap(galaxyDatasetMap);
+        currentGalaxyHistory.setPeptideShakerVisualizationMap(peptideShakerVisualizationMap);
+        updateHistoryPresenter(currentGalaxyHistory);
+
     }
 
     /**
@@ -242,16 +323,6 @@ public abstract class LogicLayer {
         hd.setSource(HistoryDataset.Source.HDA);
         hd.setContent(datasetId);
 
-//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient().createHistoryDataset(historyId, hd);
-//        System.out.println("at check content " + GALAXY_INSTANCE.getToolsClient(.showDataset(historyId, datasetId).());
-//        hds.setContent(GALAXY_INSTANCE.getHistoriesClient().showProvenance(historyId, datasetId).);
-//        GALAXY_INSTANCE.getHistoriesClient().deleteHistory
-//        ds.setPurged(true);
-//GALAXY_INSTANCE.getHistoriesClient().deleteHistory(historyId).setId(datasetId);
-//        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.deleteGalaxyHistoryDataseyt()" + ds.getName());
-//          final String query = "delete *  from hda where id= '" + ds.getId()+ "'";
-//          GALAXY_INSTANCE.getSearchClient().search(query);
-//        HistoryDetails hdt = GALAXY_INSTANCE.getHistoriesClient()
     }
 
     /**
@@ -274,6 +345,15 @@ public abstract class LogicLayer {
     }
 
     /**
+     * Get SearchGUIResults files map.
+     *
+     * @return Map dataset id and and dataset name
+     */
+    public Map<String, String> getSearchGUIResultsFilesMap() {
+        return searchGUIResultsFilesMap;
+    }
+
+    /**
      * Get MGF (spectra) files map.
      *
      * @return Map dataset id and and dataset name
@@ -285,88 +365,48 @@ public abstract class LogicLayer {
     public void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
         Workflow selectedWf;
         String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-        String json = readFile(new File(basepath + "/VAADIN/Galaxy-Workflow-onlinepeptideshaker.ga"));
+        File file;
+        WorkflowInput input2;
+        if (mgfIdsList.size() > 1) {
+            file = new File(basepath + "/VAADIN/Galaxy-Workflow-onlinepeptideshaker_collection.ga");
+            input2 = prepareWorkflowCollectionList(WorkflowInputs.InputSourceType.HDCA, mgfIdsList);
+        } else {
+            file = new File(basepath + "/VAADIN/Galaxy-Workflow-onlinepeptideshaker.ga");
+            input2 = new WorkflowInputs.WorkflowInput(mgfIdsList.get(0), WorkflowInputs.InputSourceType.HDA);
+        }
+        String json = readWorkflowFile(file);
         selectedWf = GALAXY_INSTANCE.getWorkflowsClient().importWorkflow(json);
 
         WorkflowInputs workflowInputs = new WorkflowInputs();
-//        final WorkflowDetails workflowDetails =  GALAXY_INSTANCE.getWorkflowsClient().showWorkflow(selectedWf.getId());
-//        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.executeWorkFlow()" + workflowDetails.getInputs().size());
         workflowInputs.setWorkflowId(selectedWf.getId());
         workflowInputs.setDestination(new WorkflowInputs.ExistingHistory(currentGalaxyHistory.getUsedHistoryId()));
-//         Map<String, Object> parameters = new HashMap<>();
-//        final HashMap inputDict2 = new HashMap();
-//        final HashMap values2 = new HashMap();
-//        values2.put("src", "hda");
-//        values2.put("id", fastaFileId);
-////        
-//
-//
-//        inputDict2.put("bach", Boolean.FALSE);
-//        inputDict2.put("values2", values2);
 
-//        parameters.put("input_database", inputDict2);
         WorkflowInput input = new WorkflowInputs.WorkflowInput(fastaFileId, WorkflowInputs.InputSourceType.HDA);
-        WorkflowInput input2 = new WorkflowInputs.WorkflowInput(mgfIdsList.get(0), WorkflowInputs.InputSourceType.HDA);
+
         workflowInputs.setInput("0", input);
         workflowInputs.setInput("1", input2);
+        workflowInputs.setToolParameter(Peptide_Shaker_Tool.getToolId(), new ToolParameter("outputs", "cps"));
+
         final WorkflowOutputs output = GALAXY_INSTANCE.getWorkflowsClient().runWorkflow(workflowInputs);
-        while (GALAXY_INSTANCE.getJobsClient().showJob(GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), output.getOutputIds().get(1)).getJobId()).getState().equalsIgnoreCase("running")) {
-        }
+//        while (GALAXY_INSTANCE.getJobsClient().showJob(GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), output.getOutputIds().get(1)).getJobId()).getState().equalsIgnoreCase("running")) {
+//        }
         updateSelectedHistory(currentGalaxyHistory.getUsedHistoryId());
         updateHistoryPresenter(currentGalaxyHistory);
 
         GALAXY_INSTANCE.getWorkflowsClient().deleteWorkflowRequest(selectedWf.getId());
 
-////        Map<String, Object> parameters = new HashMap<>();
-////        parameters.put("create_decoy", String.valueOf(creatDecoyDB.getSelectedButtonValue().equalsIgnoreCase("Yes")));
-////        //create gene mapping
-////        parameters.put("use_gene_mapping", String.valueOf(geneMappingBtn.getSelectedButtonValue().equalsIgnoreCase("Yes")));
-////        database search enginxml data type
-////        boolean selectAll = false;
-////        if (DBSearchEnginsSelect.getValue().toString().equalsIgnoreCase("[]")) {
-////            selectAll = true;
-////        }
-////
-////        parameters.put("X!Tandem", String.valueOf(DBSearchEnginsSelect.isSelected("X!Tandem") || selectAll));
-////        parameters.put("MSGF", String.valueOf(DBSearchEnginsSelect.isSelected("MS-GF+") || selectAll));
-////        parameters.put("OMSSA", String.valueOf(DBSearchEnginsSelect.isSelected("OMSSA") || selectAll));
-////        parameters.put("Comet", String.valueOf(DBSearchEnginsSelect.isSelected("Comet") || selectAll));
-////
-////        final HashMap inputDict2 = new HashMap();
-////        final HashMap values2 = new HashMap();
-////        values2.put("src", "hda");
-////        values2.put("id", fastaFileId);
-////        
-////
-////        inputDict2.put("bach", Boolean.FALSE);
-////        inputDict2.put("values2", values2);
-////
-////        parameters.put("input_database", inputDict2); //"{'src': 'hda'"+Float.valueOf(',')+"id': '"+input_database_contenet.getId()+"'}";//
-////
-////        final ToolInputs toolInput = new ToolInputs(Search_GUI_Tool.getId(), parameters);
-////        toolInput.setHistoryId(currentGalaxyHistory.getUsedHistoryId());
-////
-////        String mgfValues = mgfIndexes.toString().replaceFirst(",", "");
-////        parameters.put("peak_lists", mgfValues);
-////        ToolExecution exc = GALAXY_INSTANCE.getToolsClient().create(currentGalaxyHistory.getUsedHistory(), toolInput);
-////        while (GALAXY_INSTANCE.getJobsClient().showJob(GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), exc.getOutputs().get(0).getId()).getJobId()).getState().equalsIgnoreCase("running")) {
-////        }
         updateSelectedHistory(currentGalaxyHistory.getUsedHistoryId());
         updateHistoryPresenter(currentGalaxyHistory);
+        if (collectionResponse != null) {
+            collectionResponse.setPurged(true);
+
+            collectionResponse = null;
+        }
     }
 
     public void executeSearchGUITool(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
 
         Map<String, Object> parameters = new HashMap<>();
-//        parameters.put("create_decoy", String.valueOf(creatDecoyDB.getSelectedButtonValue().equalsIgnoreCase("Yes")));
-        //create gene mapping
-//        parameters.put("use_gene_mapping", String.valueOf(geneMappingBtn.getSelectedButtonValue().equalsIgnoreCase("Yes")));
-//        database search enginxml data type
-//        boolean selectAll = false;
-//        if (DBSearchEnginsSelect.getValue().toString().equalsIgnoreCase("[]")) {
-//            selectAll = true;
-//        }
-
         boolean selectAll = searchEnginesList.isEmpty();
         parameters.put("X!Tandem", String.valueOf(searchEnginesList.contains("X!Tandem") || selectAll));
         parameters.put("MSGF", String.valueOf(searchEnginesList.contains("MS-GF+") || selectAll));
@@ -374,51 +414,54 @@ public abstract class LogicLayer {
         parameters.put("Comet", String.valueOf(searchEnginesList.contains("Comet") || selectAll));
 
         final HashMap inputDict = new HashMap();
-        final HashMap values = new HashMap();
-        values.put("src", "hda");
-        values.put("id", fastaFileId);
+
+        final HashMap values = initToolDatasetDict(fastaFileId);
         inputDict.put("bach", Boolean.FALSE);
         inputDict.put("values", values);
-        parameters.put("input_database", inputDict); //"{'src': 'hda'"+Float.valueOf(',')+"id': '"+input_database_contenet.getId()+"'}";//
+        parameters.put("input_database", inputDict);
 
-       
-         final HashMap inputDict2 = new HashMap();
-        final HashMap values2 = new HashMap();
-        values2.put("src", "hda");
-        
-        HashMap hdcaid = new HashMap();
-        hdcaid.put(currentGalaxyHistory.getUsedHistoryId(), mgfIdsList.get(0));
-//      mgfIdsList.get(0)+","+mgfIdsList.get(1)
-        
-        values2.put("id",hdcaid);
-        inputDict2.put("bach", Boolean.TRUE);
-        inputDict2.put("values", values2);
-        parameters.put("peak_lists", inputDict2); //"{'src': 'hda'"+Float.valueOf(',')+"id': '"+input_database_contenet.getId()+"'}";//
-        
-        
-        
-        
+        final HashMap inputDict2 = new HashMap();
+        HashSet mgfDictValues = new HashSet();
+        for (String mgfId : mgfIdsList) {
+            mgfDictValues.add(this.initToolDatasetDict(mgfId));
+        }
+        inputDict2.put("bach", Boolean.FALSE);
+        inputDict2.put("values", mgfDictValues);
+        parameters.put("peak_lists", inputDict2);
+
         final ToolInputs toolInput = new ToolInputs(Search_GUI_Tool.getId(), parameters);
         toolInput.setHistoryId(currentGalaxyHistory.getUsedHistoryId());
-
-//        String mgfValues = mgfIndexes.toString().replaceFirst(",", "");
-//        parameters.put("peak_lists", mgfValues);
         ToolExecution exc = GALAXY_INSTANCE.getToolsClient().create(currentGalaxyHistory.getUsedHistory(), toolInput);
-        while (GALAXY_INSTANCE.getJobsClient().showJob(GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), exc.getOutputs().get(0).getId()).getJobId()).getState().equalsIgnoreCase("running")) {
-        }
+//        trackHistory(exc.getOutputs().get(0).getId());
         updateSelectedHistory(currentGalaxyHistory.getUsedHistoryId());
-        updateHistoryPresenter(currentGalaxyHistory);
+//        
+
+//        updateHistoryPresenter(currentGalaxyHistory);
     }
 
-    private String readFile(File file) {
+    public void executePeptideShakerTool(String searchGUIResultsFileID) {
+
+        Map<String, Object> parameters = new HashMap<>();
+        final HashMap inputDict = new HashMap();
+
+        final HashMap values = initToolDatasetDict(searchGUIResultsFileID);
+        inputDict.put("bach", Boolean.FALSE);
+        inputDict.put("values", values);
+        parameters.put("searchgui_input", inputDict);
+        parameters.put("outputs", "cps");
+        final ToolInputs toolInput = new ToolInputs(Peptide_Shaker_Tool.getId(), parameters);
+        toolInput.setHistoryId(currentGalaxyHistory.getUsedHistoryId());
+
+        ToolExecution exc = GALAXY_INSTANCE.getToolsClient().create(currentGalaxyHistory.getUsedHistory(), toolInput);
+        updateSelectedHistory(currentGalaxyHistory.getUsedHistoryId());
+    }
+
+    private String readWorkflowFile(File file) {
         String json = "";
         String line;
 
         try {
-            // FileReader reads text files in the default encoding.
-            FileReader fileReader
-                    = new FileReader(file);
-
+            FileReader fileReader = new FileReader(file);
             try ( // Always wrap FileReader in BufferedReader.
                     BufferedReader bufferedReader = new BufferedReader(fileReader)) {
                 while ((line = bufferedReader.readLine()) != null) {
@@ -428,17 +471,255 @@ public abstract class LogicLayer {
             }
         } catch (FileNotFoundException ex) {
             System.out.println(
-                    "Unable to open file '"
-                    + "'");
+                    "Unable to open file '" + "'");
         } catch (IOException ex) {
-            System.out.println(
-                    "Error reading file '"
-                    + "'");
-            // Or we could just do this: 
-            // ex.printStackTrace();
+            System.out.println("Error reading file '" + "'");
         }
         return json;
     }
 
+    private HashMap initToolDatasetDict(String datasetId) {
+        final HashMap values = new HashMap();
+        values.put("src", "hda");
+        values.put("id", datasetId);
+        return values;
+
+    }
+
     public abstract void updateHistoryPresenter(GalaxyHistory currentGalaxyHistory);
+
+    /**
+     * Prepares a work flow which takes as input a collection list.
+     *
+     * @param inputSource The type of input source for this work flow.
+     * @return A WorkflowInputs describing the work flow.
+     * @throws InterruptedException
+     */
+    private WorkflowInput prepareWorkflowCollectionList(WorkflowInputs.InputSourceType inputSource, List<String> dsIds) {
+        String historyId = currentGalaxyHistory.getUsedHistoryId();
+        collectionResponse = constructFileCollectionList(historyId, dsIds);
+        return new WorkflowInputs.WorkflowInput(collectionResponse.getId(),
+                inputSource);
+
+    }
+
+    /**
+     * Constructs a list collection from the given files within the given
+     * history.
+     *
+     * @param historyId The id of the history to build the collection within.
+     * @param inputIds The IDs of the files to add to the collection.
+     * @return A CollectionResponse object for the constructed collection.
+     */
+    private CollectionResponse constructFileCollectionList(String historyId, List<String> inputIds) {
+        HistoriesClient historiesClient = GALAXY_INSTANCE.getHistoriesClient();
+        CollectionDescription collectionDescription = new CollectionDescription();
+        collectionDescription.setCollectionType("list");
+        collectionDescription.setName("collection");
+        for (String inputId : inputIds) {
+            HistoryDatasetElement element = new HistoryDatasetElement();
+            element.setId(inputId);
+            element.setName(inputId);
+
+            collectionDescription.addDatasetElement(element);
+        }
+
+        return historiesClient.createDatasetCollection(historyId, collectionDescription);
+    }
+
+    private void trackHistory(String historyDsId) {
+        GalaxyServerRefresher gref = new GalaxyServerRefresher() {
+            @Override
+            public boolean process() {
+                System.out.println("at .process()  " + GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState());
+                return (GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState().equalsIgnoreCase("ok"));
+            }
+
+            @Override
+            public void end() {
+                REFRESHER.removeListener(this);
+                updateHistoryPresenter(currentGalaxyHistory);
+                System.err.println("end !");
+            }
+        };
+        REFRESHER.addListener(gref);
+        REFRESHER.setRefreshInterval(10000);
+    }
+
+    public Set<Object[]> loadPeptideShakerResults(String dataId) {
+        String fileID = this.peptideShakerVisualizationMap.get(dataId)[0];
+        String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
+        URL website;
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        BufferedReader br = null;
+        try {//           
+            website = new URL(path);
+            InputStream inputStream = website.openStream();
+            String line;
+            br = new BufferedReader(new InputStreamReader(inputStream));
+            /**
+             * escape header
+             *
+             */
+            br.readLine();
+            long byteCounter = 0;
+            int lineNumber = 0;
+            while ((line = br.readLine()) != null) {
+                byteCounter += line.getBytes().length;
+                String[] arr = line.split("\\t");
+                if (arr.length > 25) {
+                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[3], arr[5], arr[6]};
+                    proteisnSet.add(obj);
+                    lineNumber++;
+                }
+                if (lineNumber == 500) {
+                    lineNumber = 0;
+                    inputStream.close();
+                    inputStream = website.openStream();
+                    inputStream.skip(byteCounter);
+                    br = new BufferedReader(new InputStreamReader(inputStream));
+                }
+            }
+
+        } catch (MalformedURLException ex) {
+            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+        } catch (FileNotFoundException ex) {
+            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+        } catch (IOException ex) {
+            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
+                }
+            }
+        }
+        return proteisnSet;// readProteinsFile(fileToRead);
+
+    }
+
+    private Set<Object[]> readFile(Set<Object[]> proteisnSet) {
+
+        return proteisnSet;
+    }
+
+    public Set<Object[]> getPeptides(String accession, String jobId){
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        try {
+            Set<IndexPoint> points = new LinkedHashSet<>();
+            for (String key : peptideIndexes.keySet()) {
+                if (key.contains(accession)) {
+                    points.add(peptideIndexes.get(key));
+                }
+
+            }
+            if (points.isEmpty()) {
+                return null;
+            }
+            String fileID = this.peptideShakerVisualizationMap.get(jobId)[1];
+            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
+           
+            BufferedReader br = null;
+            URL website;
+            website = new URL(path);
+
+            for (IndexPoint point : points) {
+
+                try {//
+                    InputStream inputStream = website.openStream();
+                    inputStream.skip(point.getStartPoint());
+                    String line;
+                    br = new BufferedReader(new InputStreamReader(inputStream));
+                    while ((line = br.readLine()) != null) {
+                        String[] arr = line.split("\\t");
+                        if (arr.length < 16) {
+                            continue;
+                        }
+                        Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[5], arr[6], arr[15]};
+                        proteisnSet.add(obj);
+                        break;
+                    }
+
+                } catch (MalformedURLException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } catch (FileNotFoundException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } catch (IOException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } finally {
+                    if (br != null) {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
+                        }
+                    }
+                }
+
+            }
+
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return proteisnSet;
+    }
+
+    private Set<Object[]> readPeptidesFile(File proteinsFile) {
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        BufferedReader bufRdr;
+        String line;
+        int row = 0;
+        try {
+            FileReader fr = new FileReader(proteinsFile);
+            bufRdr = new BufferedReader(fr);
+//            bufRdr.readLine();
+            while ((line = bufRdr.readLine()) != null && row < 1000) {
+                System.err.println("at peptides found " + line);
+                String[] arr = line.split("\\t");
+                if (arr.length < 8) {
+                    continue;
+                }
+                Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[5], arr[6], arr[7]};
+                proteisnSet.add(obj);
+            }
+
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+            System.out.println(e.getLocalizedMessage());
+        }//e.printStackTrace();}
+        return proteisnSet;
+    }
+
+    /**
+     * Returns the index of all spectra in the given MGF file.
+     */
+    private HashMap<String, IndexPoint> getIndexMap() {
+        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+        File fileToRead = new File(basepath + "/VAADIN/Galaxy7-[Peptide_Shaker_on_data_6__Peptide_Report].tabular");
+        HashMap<String, IndexPoint> indexes = new HashMap<>();
+        BufferedRandomAccessFile bufferedRandomAccessFile;
+        try {
+            bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
+            long currentIndex = 0;
+            String title;
+            int lineCounter = 0;
+            String line;
+            bufferedRandomAccessFile.getNextLine();
+            while ((line = bufferedRandomAccessFile.getNextLine()) != null) {
+                title = line.split("\\t")[1].replace(";", "_") + "__" + lineCounter++;
+                currentIndex = bufferedRandomAccessFile.getFilePointer();
+                IndexPoint point = new IndexPoint();
+                point.setStartPoint(currentIndex - (line.getBytes().length));
+                point.setLength((line.getBytes().length));
+                indexes.put(title, point);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return indexes;
+    }
+
 }

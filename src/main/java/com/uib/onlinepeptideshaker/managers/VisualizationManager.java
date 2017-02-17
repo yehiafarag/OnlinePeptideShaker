@@ -76,12 +76,12 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
             view.minimizeView();
         }
         visualizationMap.get(viewId).maximizeView();
-        if (visualizationMap.keySet().toArray()[0].toString().equalsIgnoreCase(viewId)) {
-            System.err.println("at first button selected");
-//            mainToolViewContainer.removeStyleName("topleftroundedborder");
-        } else {
-//        mainToolViewContainer.addStyleName("topleftroundedborder");
-        }
+//        if (visualizationMap.keySet().toArray()[0].toString().equalsIgnoreCase(viewId)) {
+//            System.err.println("at first button selected");
+////            mainToolViewContainer.removeStyleName("topleftroundedborder");
+//        } else {
+////        mainToolViewContainer.addStyleName("topleftroundedborder");
+//        }
     }
 
 }

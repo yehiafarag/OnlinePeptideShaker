@@ -13264,7 +13264,7 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: 3px;
 	background-image: url(img/home-o.png);
 	background-repeat: no-repeat;
-	background-size: 80%;
+	background-size: auto 80%;
 	background-position: center;
 	min-width: 16px;
 	min-height: 16px;
@@ -13300,7 +13300,7 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: 3px;
 	background-image: url(img/galaxyLogo.png);
 	background-repeat: no-repeat;
-	background-size: 80%;
+	background-size: auto 80%;
 	background-position: center;
 	min-width: 16px;
 	min-height: 16px;
@@ -13399,7 +13399,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .customisedvaadintheme .deletablelabel {
-	background-color: gray;
+	background-color: #737d9a;
 	color: white;
 	font-size: 13px;
 	padding-left: 10px;
@@ -13407,6 +13407,14 @@ div.v-layout.v-horizontal.v-widget {
 	text-overflow: ellipsis;
 	line-height: 20px !important;
 	max-height: 20px !important;
+}
+
+.customisedvaadintheme .inprogress {
+	background-image: url(img/spinner.gif) !important;
+	background-size: contain;
+	background-position: right;
+	background-repeat: no-repeat;
+	background-color: #ffafaf !important;
 }
 
 .customisedvaadintheme .closebtn {
@@ -13593,4 +13601,12 @@ div.v-layout.v-horizontal.v-widget {
 .customisedvaadintheme .v-filterselect-standredcomboboxwithcaption {
 	max-height: 25px;
 	font-size: 13px;
+}
+
+.customisedvaadintheme .toolviewframe .v-table-body-wrapper {
+	width: 100% !important;
+}
+
+.customisedvaadintheme .toolviewframe .v-table-header-wrap {
+	width: 100% !important;
 }

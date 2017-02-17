@@ -28,6 +28,10 @@ public class GalaxyHistory {
      * Current used history on galaxy.
      */
     private History usedHistory;
+     /**
+     * PeptideShaker results to view map.
+     */
+    private Map<String, String[]> peptideShakerVisualizationMap;
 
     public History getUsedHistory() {
         return usedHistory;
@@ -90,5 +94,13 @@ public class GalaxyHistory {
      */
     public void setUsedHistoryId(String usedHistoryId) {
         this.usedHistoryId = usedHistoryId;
+    }
+
+    public Map<String, String[]> getPeptideShakerVisualizationMap() {
+        return peptideShakerVisualizationMap;
+    }
+
+    public void setPeptideShakerVisualizationMap(Map<String, String[]> peptideShakerVisualizationMap) {
+        this.peptideShakerVisualizationMap = peptideShakerVisualizationMap;
     }
 }

@@ -1,7 +1,7 @@
 package com.uib.onlinepeptideshaker.presenter;
 
 import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
-import com.uib.onlinepeptideshaker.presenter.view.DeletableLabel;
+import com.uib.onlinepeptideshaker.presenter.view.ClickableLabel;
 import com.vaadin.data.Property;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Panel;
@@ -159,26 +159,41 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
         peptideShakerHistoryDatasetPanelContent.removeAllComponents();
         peptideShakerHistoryDatasetResultsPanelContent.removeAllComponents();
         for (String key : galaxyHistory.getHistoryDatasetsMap().keySet()) {
-            DeletableLabel label = new DeletableLabel(galaxyHistory.getHistoryDatasetsMap().get(key).getName(), galaxyHistory.getHistoryDatasetsMap().get(key).getUrl(), galaxyHistory.getHistoryDatasetsMap().get(key).getId()) {
+            if (galaxyHistory.getHistoryDatasetsMap().get(key).getState() == null) {
+                continue;
+            }
+            ClickableLabel label = new ClickableLabel(galaxyHistory.getHistoryDatasetsMap().get(key).getName(), galaxyHistory.getHistoryDatasetsMap().get(key).getUrl(), galaxyHistory.getHistoryDatasetsMap().get(key).getId()) {
                 @Override
-                public void deleteAction(String id) {
+                public void performAction(String id) {
                     deleteHistoryDataset(currentGalaxyHistory.getUsedHistoryId(), id);
                 }
 
             };
             label.setData(key);
+            label.setState(!(galaxyHistory.getHistoryDatasetsMap().get(key).getState() + "").replace("new", "ok").equals("ok"));
+
             String type = galaxyHistory.getHistoryDatasetsMap().get(key).getHistoryContentType();
             if (type.equalsIgnoreCase("fasta") || type.equalsIgnoreCase("mgf")) {
                 searchGIUHistoryDatasetPanelContent.addComponent(label);
             } else if (type.equalsIgnoreCase("searchgui_archive")) {
                 peptideShakerHistoryDatasetPanelContent.addComponent(label);
-            } else if (type.equalsIgnoreCase("cps")) {
-                peptideShakerHistoryDatasetResultsPanelContent.addComponent(label);
+            } else if (type.equalsIgnoreCase("peptideshaker_archive") || type.equalsIgnoreCase("mzid")) {
+               
             } else {
                 generalHistoryDatasetPanelContent.addComponent(label);
             }
         }
+        for (String jobId : galaxyHistory.getPeptideShakerVisualizationMap().keySet()) {
+            ClickableLabel label = new ClickableLabel("view data",null,jobId) {
+                @Override
+                public void performAction(String id) {
+                    viewPeptideshakerResults(id);
+                    }
+            }; 
+            peptideShakerHistoryDatasetResultsPanelContent.addComponent(label);
+        }
 
+        //create clickable label for view peptideShaker
         this.blink();
     }
 
@@ -230,5 +245,12 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
      * @param datasetid history dataset id.
      */
     public abstract void deleteHistoryDataset(String historyId, String historyDatasetId);
+    
+    /**
+     * View peptideShakerResults 
+     *
+     * @param jobId job id.
+     */
+    public abstract void viewPeptideshakerResults(String jobId);
 
 }

@@ -243,7 +243,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         APIKey.addStyleName(ValoTheme.TEXTFIELD_TINY);
         APIKey.addStyleName("nomargin");
         APIKey.setInputPrompt("Galaxy API Key");
-        APIKey.setValue("71821f0c14cf63a2609f59d821bc1df3");//admin 6abed6a0b5021096631350a0b89c5155   ----61062cd3acb2433c1e1ed66d6560357f
+        APIKey.setValue("71821f0c14cf63a2609f59d821bc1df3");//admin 6abed6a0b5021096631350a0b89c5155   --71821f0c14cf63a2609f59d821bc1df3--61062cd3acb2433c1e1ed66d6560357f
         userAPIKeyPanel.addComponent(APIKey);
         APIKey.setWidth(100, Unit.PERCENTAGE);
         APIKey.setHeight(50, Unit.PERCENTAGE);
@@ -362,10 +362,9 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         }
 
         try {
-            System.err.println("at here should show error" + galaxyInstance.getConfigurationClient().getRawConfiguration().keySet() + "   " + galaxyInstance.getGalaxyUrl());
-
+            galaxyInstance.getConfigurationClient().getRawConfiguration().keySet();
+            galaxyInstance.getGalaxyUrl();
         } catch (Exception e) {
-            e.printStackTrace();
             galaxyConnected = false;
             connectionLabel.setValue("<font color='red'>Galaxy is not connected, check input data <font size='3' color='red'>&#128530;</font></font>");
             return false;

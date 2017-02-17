@@ -50,11 +50,15 @@ public class WebTool extends Tool {
      * @return String The tool id generated in galaxy server
      */
     public String getToolId() {
+        if (toolId == null && !toolIds.isEmpty()) {
+            toolId = toolIds.get(0);
+        }
         return toolId;
     }
 
     /**
-     *Get list of tool ids
+     * Get list of tool ids
+     *
      * @return List<String> available tool ids in system
      */
     public List<String> getToolIds() {
@@ -62,7 +66,8 @@ public class WebTool extends Tool {
     }
 
     /**
-     *Get list of section ids
+     * Get list of section ids
+     *
      * @return List<String> available section ids contain tool
      */
     public List<String> getSectionIds() {

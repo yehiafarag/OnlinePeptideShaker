@@ -2,8 +2,10 @@ package com.uib.onlinepeptideshaker.presenter;
 
 import com.uib.onlinepeptideshaker.managers.RegistrableView;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
+import com.uib.onlinepeptideshaker.model.beans.ProteinBean;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
 import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
+import com.vaadin.data.Property;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.server.ThemeResource;
@@ -12,10 +14,11 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * This class represent web tool presenter which is responsible for managing the
@@ -23,7 +26,7 @@ import java.util.Iterator;
  *
  * @author Yehia Farag
  */
-public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.LayoutClickListener {
+public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.LayoutClickListener, Property.ValueChangeListener {
 
     /**
      * Main view layout extender.
@@ -38,21 +41,13 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      */
     private final VerticalLayout extender;
     /**
-     * SearchGUI web tool.
-     */
-    private final WebTool searchGUITool;
-    /**
-     * PeptideShaker web tool.
-     */
-    private final WebTool peptideShakerTool;
-    /**
-     * Initialize web tool.
-     */
-    private boolean initSearchGUITool = true;
-    /**
-     * Top layout (tools button container).
+     * Top layout (proteins table container).
      */
     private HorizontalLayout topPanel;
+    /**
+     * Bottom layout (peptide table container).
+     */
+    private HorizontalLayout bottomPanel;
     /**
      * Last selected top button.
      */
@@ -60,15 +55,19 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
     /**
      * Work flow input layout.
      */
-    private WorkFlowForm workFlowForm ;
-     /**
+    private WorkFlowForm workFlowForm;
+    /**
      * Welcome page for tools.
      */
     private VerticalLayout welcomePage;
-      /**
+    /**
      * The galaxy server logic layer.
      */
     private final LogicLayer LOGIC_LAYER;
+
+    private final Table protiensTable;
+    private final Table peptidesTable;
+    private String peptideShakerResultsId;
 
     /**
      * Initialize the web tool main attributes
@@ -76,17 +75,16 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      * @param searchGUITool SearchGUI web tool
      */
     public WebVisualizationPresenter(LogicLayer LOGIC_LAYER) {
-        this.searchGUITool = LOGIC_LAYER.getSearch_GUI_Tool();
-        this.peptideShakerTool = LOGIC_LAYER.getPeptide_Shaker_Tool();
         this.LOGIC_LAYER = LOGIC_LAYER;
-        
+        this.protiensTable = new Table();
+        this.peptidesTable = new Table();
         this.mainViewPanel = new VerticalLayout();
         initializeMainViewPanel();
         this.sideButton = new AbsoluteLayout();
         this.sideButton.setSizeFull();
         this.sideButton.setStyleName("frame");
         this.sideButton.addStyleName("sidebutton");
-        
+
         extender = new VerticalLayout();
         this.sideButton.addComponent(extender);
         extender.setSizeFull();
@@ -99,7 +97,61 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         extender.setExpandRatio(icon, 8);
         this.sideButton.setData(WebVisualizationPresenter.this.getViewId());
         icon.setData(WebVisualizationPresenter.this.getViewId());
-        
+
+    }
+
+    /**
+     * Initialize the proteins table.
+     */
+    private void initProteinTable() {
+//        this.protiensTable.setStyleName(ValoTheme.TABLE_SMALL);
+        this.protiensTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+        this.protiensTable.setHeight(100, Unit.PERCENTAGE);
+        this.protiensTable.setWidth(100, Unit.PERCENTAGE);
+        this.protiensTable.setCacheRate(1);
+
+        this.protiensTable.setSelectable(true);
+        this.protiensTable.setSortEnabled(true);
+        this.protiensTable.setColumnReorderingAllowed(false);
+
+        this.protiensTable.setColumnCollapsingAllowed(true);
+        this.protiensTable.setImmediate(true);
+        this.protiensTable.setMultiSelect(false);
+
+        this.protiensTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
+        this.protiensTable.addContainerProperty("Accession", String.class, null, "Accession", null, Table.Align.CENTER);
+        this.protiensTable.addContainerProperty("Name", String.class, null, "Name", null, Table.Align.LEFT);
+        this.protiensTable.addContainerProperty("geneName", String.class, null, "Gene Name", null, Table.Align.CENTER);
+        this.protiensTable.addContainerProperty("mwkDa", String.class, null, "MW (kDa)", null, Table.Align.RIGHT);
+        this.protiensTable.addContainerProperty("possibleCoverage", String.class, null, "Possible Coverage", null, Table.Align.RIGHT);
+
+    }
+
+    /**
+     * Initialize the proteins table.
+     */
+    private void initPeptidesTable() {
+//        this.protiensTable.setStyleName(ValoTheme.TABLE_SMALL);
+        this.peptidesTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+        this.peptidesTable.setHeight(100, Unit.PERCENTAGE);
+        this.peptidesTable.setWidth(100, Unit.PERCENTAGE);
+        this.peptidesTable.setCacheRate(1);
+
+        this.peptidesTable.setSelectable(true);
+        this.peptidesTable.setSortEnabled(true);
+        this.peptidesTable.setColumnReorderingAllowed(false);
+
+        this.peptidesTable.setColumnCollapsingAllowed(true);
+        this.peptidesTable.setImmediate(true);
+        this.peptidesTable.setMultiSelect(false);
+
+        this.peptidesTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
+        this.peptidesTable.addContainerProperty("Protein(s)", String.class, null, "Protein(s)", null, Table.Align.CENTER);
+        this.peptidesTable.addContainerProperty("Protein Group(s)", String.class, null, "Name", null, Table.Align.LEFT);
+        this.peptidesTable.addContainerProperty("Sequence", String.class, null, "Sequence", null, Table.Align.CENTER);
+        this.peptidesTable.addContainerProperty("Modified Sequence", String.class, null, "Modified Sequence", null, Table.Align.RIGHT);
+        this.peptidesTable.addContainerProperty("Validation", String.class, null, "Validation", null, Table.Align.RIGHT);
+
     }
 
     /**
@@ -110,103 +162,48 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         this.mainViewPanel.setSizeFull();
         this.mainViewPanel.setStyleName("toolviewframe");
         this.mainViewPanel.setSpacing(true);
-        
-        topPanel = new HorizontalLayout();
-        topPanel.setSizeFull();
-        topPanel.setStyleName("framedpanel");
-//        this.mainViewPanel.addComponent(topPanel);
-//        this.mainViewPanel.setExpandRatio(topPanel, 10);
-        
-        VerticalLayout startWorkFlowIcon = new VerticalLayout();
-        startWorkFlowIcon.setSizeFull();
-        startWorkFlowIcon.setStyleName("startworkflow");
-        if (this.peptideShakerTool != null && this.searchGUITool != null) {
-            startWorkFlowIcon.setData(1);
-        } else {
-            startWorkFlowIcon.setEnabled(false);
-            startWorkFlowIcon.addStyleName("deactivatepermanent");
-        }
-        
-        topPanel.addComponent(startWorkFlowIcon);
-        
-        VerticalLayout searchGUIIcon = new VerticalLayout();
-        searchGUIIcon.setSizeFull();
-        searchGUIIcon.setStyleName("searchguiicon");
-         if (this.searchGUITool != null) {           
-            searchGUIIcon.setData(2);
-        } else {
-            searchGUIIcon.setEnabled(false);
-            searchGUIIcon.addStyleName("deactivatepermanent");
-        }
-        
-        topPanel.addComponent(searchGUIIcon);
-        
-        
-        
-       
 
-        VerticalLayout peptideShakerIcon = new VerticalLayout();
-        peptideShakerIcon.setSizeFull(); 
-        peptideShakerIcon.setStyleName("peptideshakericon");
-         if (this.peptideShakerTool != null) {           
-            peptideShakerIcon.setData(3);
-        } else {
-            peptideShakerIcon.setEnabled(false);
-            peptideShakerIcon.addStyleName("deactivatepermanent");
-        }       
-        topPanel.addComponent(peptideShakerIcon); 
-        topPanel.addLayoutClickListener(WebVisualizationPresenter.this);
-        
-        AbsoluteLayout inputPanel = new AbsoluteLayout();
-        inputPanel.setSizeFull();
-        inputPanel.setStyleName("framedpanel");
-        this.mainViewPanel.addComponent(inputPanel);
-        this.mainViewPanel.setExpandRatio(inputPanel, 90);
-        
-        welcomePage = new VerticalLayout();
-        welcomePage.setSizeFull();        
-        Label welcomeLabel = new Label("Under processing!");
-        welcomeLabel.setWidth(50,Unit.PERCENTAGE);
-        welcomeLabel.setHeight(50,Unit.PERCENTAGE);
-        welcomeLabel.setStyleName(ValoTheme.LABEL_HUGE);
-        welcomePage.addComponent(welcomeLabel);
-        welcomePage.setComponentAlignment(welcomeLabel, Alignment.MIDDLE_CENTER);
-        
-        
-        
-         inputPanel.addComponent(welcomePage);
-         mainViewPanel.addStyleName("hidepanel");
-         
-//        workFlowForm = new WorkFlowForm(){
-//            @Override
-//            public void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
-//                LOGIC_LAYER.executeWorkFlow(fastaFileId, mgfIdsList, searchEnginesList);
-//            }
-//            
-//        
-//        };
-//        inputPanel.addComponent(workFlowForm);
-//        workFlowForm.setVisible(false);
-        
+        this.topPanel = new HorizontalLayout();
+        this.topPanel.setSizeFull();
+        this.topPanel.setStyleName("framedpanel");
+        this.topPanel.setCaption("<b>Proteins</b>");
+        this.topPanel.setCaptionAsHtml(true);
+        this.mainViewPanel.addComponent(this.topPanel);
+        topPanel.setMargin(false);
+        this.topPanel.addComponent(this.protiensTable);
+        this.initProteinTable();
+
+        this.bottomPanel = new HorizontalLayout();
+        this.bottomPanel.setSizeFull();
+        this.bottomPanel.setCaption("<b>Peptides</b>");
+        this.bottomPanel.setCaptionAsHtml(true);
+        this.bottomPanel.setStyleName("framedpanel");
+        this.mainViewPanel.addComponent(this.bottomPanel);
+        this.bottomPanel.addComponent(this.peptidesTable);
+        bottomPanel.setMargin(false);
+        this.initPeptidesTable();
+        this.mainViewPanel.addStyleName("hidepanel");
+
     }
-    
+
     @Override
     public String getViewId() {
         return this.getClass().getName();
     }
-    
+
     @Override
     public void minimizeView() {
         mainViewPanel.addStyleName("hidepanel");
+
         sideButton.removeStyleName("mergewithmainview");
     }
-    
+
     @Override
     public void maximizeView() {
         mainViewPanel.removeStyleName("hidepanel");
         sideButton.addStyleName("mergewithmainview");
     }
-    
+
     @Override
     public AbsoluteLayout getMinimizeComponent() {
         return sideButton;
@@ -221,7 +218,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
     public VerticalLayout getMainViewComponent() {
         return mainViewPanel;
     }
-    
+
     @Override
     public void layoutClick(LayoutEvents.LayoutClickEvent event) {
         Component comp = event.getClickedComponent();
@@ -234,7 +231,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                 btn.removeStyleName("apply");
             }
             welcomePage.setVisible(true);
-             workFlowForm.setVisible(false);
+            workFlowForm.setVisible(false);
             return;
         }
         if (comp instanceof VerticalLayout) {
@@ -250,7 +247,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                 }
                 comp.removeStyleName("deactivate");
                 comp.addStyleName("apply");
-                 workFlowForm.setVisible(false);
+                workFlowForm.setVisible(false);
                 switch (index) {
                     case 1:
                         //initialize workflow and input form
@@ -260,7 +257,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                         break;
                     case 2:
                         //view searchGUI input form
-                        
+
                         break;
                     case 3:
                         //view PeptideShaker input form
@@ -269,8 +266,44 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                         break;
                 }
             }
-            
+
         }
     }
+
+    public void updateProteinTable(String peptideShakerResultsId) {
+        this.peptideShakerResultsId = peptideShakerResultsId;
+        protiensTable.removeValueChangeListener(WebVisualizationPresenter.this);
+        this.protiensTable.removeAllItems();
+        
+        Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerResults(peptideShakerResultsId);
+       
+        for (Object[] proteinBean : proteinsSet) {
+            this.protiensTable.addItem(proteinBean, proteinBean[1]);
+
+        }
+        this.protiensTable.markAsDirty();
+        protiensTable.addValueChangeListener(WebVisualizationPresenter.this);
+
+    }
+    public void updateTableItems(){
     
+    
+    }
+
+    @Override
+    public void valueChange(Property.ValueChangeEvent event) {
+
+        this.peptidesTable.removeAllItems();
+        if (event.getProperty().getValue() == null) {
+            return;
+        }
+        Set<Object[]> proteinsSet = LOGIC_LAYER.getPeptides(event.getProperty().getValue().toString(), this.peptideShakerResultsId);
+        int index = 1;
+        for (Object[] proteinBean : proteinsSet) {
+            proteinBean[0] = "" + index++;
+            this.peptidesTable.addItem(proteinBean, proteinBean[1]);
+        }
+        this.peptidesTable.markAsDirty();
+    }
+
 }

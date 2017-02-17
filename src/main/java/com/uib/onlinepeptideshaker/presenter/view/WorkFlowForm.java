@@ -32,7 +32,7 @@ public abstract class WorkFlowForm extends VerticalLayout {
 
         searchGUIForm = new SearchGuiInputForm(){
             @Override
-            public void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
+            public void executeSearchGUITool(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList) {
                 WorkFlowForm.this.executeWorkFlow(fastaFileId, mgfIdsList, searchEnginesList);
             }
         

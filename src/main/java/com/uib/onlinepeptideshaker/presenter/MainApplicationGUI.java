@@ -1,6 +1,7 @@
 package com.uib.onlinepeptideshaker.presenter;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
+import com.github.wolfie.refresher.Refresher;
 import com.uib.onlinepeptideshaker.managers.VisualizationManager;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
 import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
@@ -14,6 +15,14 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
 
 /**
  * This class represents main GUI container for galaxy web interface (login) and
@@ -51,11 +60,19 @@ public class MainApplicationGUI extends VerticalLayout {
      * The galaxy server history manger.
      */
     private HistoryManagmentPresenter historyManagmentPresenter;
+    /**
+     * The galaxy tools presenter.
+     */
+    private WebToolsPresenter webGalaxyTools;
+    /**
+     * The galaxy web visualization presenter.
+     */
+    private WebVisualizationPresenter webVisualization;
 
     /**
      * Constructor to initialize the main variable.
      */
-    public MainApplicationGUI() {
+    public MainApplicationGUI(Refresher REFRESHER) {
         MainApplicationGUI.this.setSizeFull();
         MainApplicationGUI.this.setSpacing(true);
         MainApplicationGUI.this.setMargin(new MarginInfo(false, true, true, true));
@@ -85,10 +102,15 @@ public class MainApplicationGUI extends VerticalLayout {
         MainApplicationGUI.this.setStyleName("minheight275");
         MainApplicationGUI.this.addStyleName("minwidth435");
 
-        this.LOGIC_LAYER = new LogicLayer() {
+        this.LOGIC_LAYER = new LogicLayer(REFRESHER) {
             @Override
             public void updateHistoryPresenter(GalaxyHistory currentGalaxyHistory) {
-                historyManagmentPresenter.updateHistoryPanels(currentGalaxyHistory);
+                if (historyManagmentPresenter != null) {
+                    historyManagmentPresenter.updateHistoryPanels(currentGalaxyHistory);
+                }
+                if (webGalaxyTools != null) {
+                    webGalaxyTools.updateForm();
+                }
             }
 
         };
@@ -170,6 +192,14 @@ public class MainApplicationGUI extends VerticalLayout {
 
             }
 
+            @Override
+            public void viewPeptideshakerResults(String jobId) {
+                VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
+                webVisualization.updateProteinTable(jobId);
+                
+
+            }
+
         };
         toolViewHistoryContainer.addComponent(historyManagmentPresenter.getMainHistoryPanel());
         toolViewHistoryContainer.setComponentAlignment(historyManagmentPresenter.getMainHistoryPanel(), Alignment.BOTTOM_RIGHT);
@@ -210,12 +240,12 @@ public class MainApplicationGUI extends VerticalLayout {
         VISUALIZATION_MANAGER.registerView(uploadToGalaxyTool);
 
         bottomRightLayoutContainer.addComponent(historyManagmentPresenter);
-      
-        WebToolsPresenter webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
+
+        webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
         VISUALIZATION_MANAGER.registerView(webGalaxyTools);
         VISUALIZATION_MANAGER.viewLayout(webGalaxyTools.getViewId());
 
-        WebVisualizationPresenter webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
+        webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
         VISUALIZATION_MANAGER.registerView(webVisualization);
         return bodyPanelLayout;
 
@@ -232,5 +262,7 @@ public class MainApplicationGUI extends VerticalLayout {
         historyManagmentPresenter.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
 
     }
+    
+ 
 
 }

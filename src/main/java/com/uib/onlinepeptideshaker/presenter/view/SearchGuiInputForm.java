@@ -126,7 +126,7 @@ public abstract class SearchGuiInputForm extends VerticalLayout implements Butto
      * @param mgfIdsList The selected MGFs (spectra)file id list
      * @param searchEnginesList The selected search engine name list
      */
-    public abstract void executeWorkFlow(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList);
+    public abstract void executeSearchGUITool(String fastaFileId, List<String> mgfIdsList, List<String> searchEnginesList);
 
     /**
      * Get the selected FASTA file id
@@ -167,7 +167,7 @@ public abstract class SearchGuiInputForm extends VerticalLayout implements Butto
 
     @Override
     public void buttonClick(Button.ClickEvent event) {
-        executeWorkFlow(getSelectedProteinDatabaseFastaFileId(), getSelectedMgfFileIds(), getDBSearchEnginesSelect());
+        executeSearchGUITool(getSelectedProteinDatabaseFastaFileId(), getSelectedMgfFileIds(), getDBSearchEnginesSelect());
     }
 
 }
