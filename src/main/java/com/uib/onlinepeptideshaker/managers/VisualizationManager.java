@@ -40,15 +40,16 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
                 mainToolViewContainer.addStyleName("fullsize");
             }
         });
-        
-         historyManagmentPresenter.getMainHistoryPanel().addStyleName("hidepanel");
-         mainToolViewContainer.addStyleName("fullsize");
+
+        historyManagmentPresenter.getMainHistoryPanel().addStyleName("hidepanel");
+        mainToolViewContainer.addStyleName("fullsize");
 
 //        this.mainToolViewContainer.addStyleName("topleftroundedborder");
     }
 
     @Override
     public void layoutClick(LayoutEvents.LayoutClickEvent event) {
+       
 //        if (event.getComponent().getParent() instanceof RegistrableView) {
         this.viewLayout(((AbsoluteLayout) event.getComponent()).getData().toString());
 //        }
@@ -72,6 +73,8 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
      * @param viewId selected view id
      */
     public void viewLayout(String viewId) {
+         historyManagmentPresenter.getMainHistoryPanel().addStyleName("hidepanel");
+        mainToolViewContainer.addStyleName("fullsize");
         for (RegistrableView view : visualizationMap.values()) {
             view.minimizeView();
         }

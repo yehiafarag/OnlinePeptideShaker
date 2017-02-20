@@ -30,13 +30,26 @@
             <url>http://maven.vaadin.com/vaadin-addons</url>
         </repository>
     
-        <!-- Compomics Genesis Maven 2 repository -->
         <repository>
-            <id>genesis-maven2-repository</id>
-            <name>Genesis maven2 repository</name>
-            <url>http://genesis.UGent.be/maven2</url>
-            <layout>default</layout>
-        </repository>
+        <id>genesis-maven2-repository</id>
+        <name>Genesis maven2 repository</name>
+        <url>http://genesis.UGent.be/maven2</url>
+        <layout>default</layout>
+    </repository>
+
+    <!-- old EBI repository -->
+    <repository>
+        <id>ebi-repo</id> 
+        <name>The EBI internal repository</name>
+        <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+    </repository>
+
+    <!-- EBI repository -->
+    <repository>
+        <id>pst-release</id>
+        <name>EBI Nexus Repository</name>
+        <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-release</url>
+    </repository>
     </repositories>
 
     <dependencyManagement>
@@ -101,7 +114,11 @@
             <version>1.2.2</version>
         </dependency>
 
-
+<dependency>
+    <groupId>com.compomics</groupId>
+    <artifactId>utilities</artifactId>
+    <version>4.11.2</version>
+</dependency>
         
     </dependencies>
 

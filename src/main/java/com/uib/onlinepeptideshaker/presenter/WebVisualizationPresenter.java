@@ -2,10 +2,9 @@ package com.uib.onlinepeptideshaker.presenter;
 
 import com.uib.onlinepeptideshaker.managers.RegistrableView;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
-import com.uib.onlinepeptideshaker.model.beans.ProteinBean;
-import com.uib.onlinepeptideshaker.model.beans.WebTool;
 import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.server.ThemeResource;
@@ -45,7 +44,11 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      */
     private HorizontalLayout topPanel;
     /**
-     * Bottom layout (peptide table container).
+     * Bottom left layout (peptide and psm table container).
+     */
+    private VerticalLayout bottomLeftPanel;
+    /**
+     * Bottom layout (peptide-psm-mgf tables container).
      */
     private HorizontalLayout bottomPanel;
     /**
@@ -65,9 +68,13 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      */
     private final LogicLayer LOGIC_LAYER;
 
-    private final Table protiensTable;
+    private final Table proteinsTable;
     private final Table peptidesTable;
+    private final Table psmTable;
+    private final Table mgfTable;
     private String peptideShakerResultsId;
+    private final ValueChangeListener peptideTableListener;
+    private final ValueChangeListener psmTableListener;
 
     /**
      * Initialize the web tool main attributes
@@ -76,8 +83,10 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      */
     public WebVisualizationPresenter(LogicLayer LOGIC_LAYER) {
         this.LOGIC_LAYER = LOGIC_LAYER;
-        this.protiensTable = new Table();
+        this.proteinsTable = new Table();
         this.peptidesTable = new Table();
+        this.psmTable = new Table();
+        mgfTable = new Table();
         this.mainViewPanel = new VerticalLayout();
         initializeMainViewPanel();
         this.sideButton = new AbsoluteLayout();
@@ -97,6 +106,39 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         extender.setExpandRatio(icon, 8);
         this.sideButton.setData(WebVisualizationPresenter.this.getViewId());
         icon.setData(WebVisualizationPresenter.this.getViewId());
+        psmTableListener = (Property.ValueChangeEvent event) -> {
+            this.mgfTable.removeAllItems();
+            if (event.getProperty().getValue() == null) {
+                return;
+            }
+            String value = "" + event.getProperty().getValue().toString();
+            Set<Object[]> proteinsSet = LOGIC_LAYER.getMGF(psmTable.getItem(value).getItemProperty("Spectrum_Title").getValue().toString(), this.peptideShakerResultsId);
+            int index = 1;
+            for (Object[] proteinBean : proteinsSet) {
+                proteinBean[0] = "" + index++;
+                this.mgfTable.addItem(proteinBean, proteinBean[0]);
+            }
+            this.mgfTable.markAsDirty();
+        };
+        peptideTableListener = (Property.ValueChangeEvent event) -> {
+            this.psmTable.removeValueChangeListener(psmTableListener);
+            this.psmTable.removeAllItems();
+
+            if (event.getProperty().getValue() == null) {
+                return;
+            }
+            String value = "" + event.getProperty().getValue().toString().split("__")[0];
+            Set<Object[]> proteinsSet = LOGIC_LAYER.getPsm(value, this.peptideShakerResultsId);
+            int index = 1;
+            for (Object[] proteinBean : proteinsSet) {
+                proteinBean[0] = "" + index++;
+                this.psmTable.addItem(proteinBean, proteinBean[0] + "_" + proteinBean[1]);
+            }
+            this.psmTable.markAsDirty();
+            this.psmTable.addValueChangeListener(psmTableListener);
+             this.psmTable.select(this.psmTable.getItemIds().iterator().next());
+
+        };
 
     }
 
@@ -104,26 +146,31 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      * Initialize the proteins table.
      */
     private void initProteinTable() {
-//        this.protiensTable.setStyleName(ValoTheme.TABLE_SMALL);
-        this.protiensTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
-        this.protiensTable.setHeight(100, Unit.PERCENTAGE);
-        this.protiensTable.setWidth(100, Unit.PERCENTAGE);
-        this.protiensTable.setCacheRate(1);
+//        this.proteinsTable.setStyleName(ValoTheme.TABLE_SMALL);
 
-        this.protiensTable.setSelectable(true);
-        this.protiensTable.setSortEnabled(true);
-        this.protiensTable.setColumnReorderingAllowed(false);
+        this.proteinsTable.setCaption("<b>Proteins</b>");
+        this.proteinsTable.setCaptionAsHtml(true);
+        this.proteinsTable.setStyleName("framedpanel");
+        this.proteinsTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+        this.proteinsTable.setHeight(100, Unit.PERCENTAGE);
+        this.proteinsTable.setWidth(100, Unit.PERCENTAGE);
+        this.proteinsTable.setCacheRate(1);
 
-        this.protiensTable.setColumnCollapsingAllowed(true);
-        this.protiensTable.setImmediate(true);
-        this.protiensTable.setMultiSelect(false);
+        this.proteinsTable.setSelectable(true);
+        this.proteinsTable.setSortEnabled(true);
+        this.proteinsTable.setColumnReorderingAllowed(false);
 
-        this.protiensTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
-        this.protiensTable.addContainerProperty("Accession", String.class, null, "Accession", null, Table.Align.CENTER);
-        this.protiensTable.addContainerProperty("Name", String.class, null, "Name", null, Table.Align.LEFT);
-        this.protiensTable.addContainerProperty("geneName", String.class, null, "Gene Name", null, Table.Align.CENTER);
-        this.protiensTable.addContainerProperty("mwkDa", String.class, null, "MW (kDa)", null, Table.Align.RIGHT);
-        this.protiensTable.addContainerProperty("possibleCoverage", String.class, null, "Possible Coverage", null, Table.Align.RIGHT);
+        this.proteinsTable.setColumnCollapsingAllowed(true);
+        this.proteinsTable.setImmediate(true);
+        this.proteinsTable.setMultiSelect(false);
+
+        this.proteinsTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
+        this.proteinsTable.addContainerProperty("Accession", String.class, null, "Accession", null, Table.Align.CENTER);
+        this.proteinsTable.addContainerProperty("Name", String.class, null, "Name", null, Table.Align.LEFT);
+        this.proteinsTable.addContainerProperty("geneName", String.class, null, "Gene Name", null, Table.Align.CENTER);
+        this.proteinsTable.addContainerProperty("mwkDa", String.class, null, "MW (kDa)", null, Table.Align.RIGHT);
+        this.proteinsTable.addContainerProperty("possibleCoverage", String.class, null, "Possible Coverage", null, Table.Align.RIGHT);
+        this.proteinsTable.addContainerProperty("peptides_number", String.class, null, "#Peptides", null, Table.Align.RIGHT);
 
     }
 
@@ -131,7 +178,10 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      * Initialize the proteins table.
      */
     private void initPeptidesTable() {
-//        this.protiensTable.setStyleName(ValoTheme.TABLE_SMALL);
+//        this.proteinsTable.setStyleName(ValoTheme.TABLE_SMALL);
+        this.peptidesTable.setCaption("<b>Peptides</b>");
+        this.peptidesTable.setCaptionAsHtml(true);
+        this.peptidesTable.setStyleName("framedpanel");
         this.peptidesTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
         this.peptidesTable.setHeight(100, Unit.PERCENTAGE);
         this.peptidesTable.setWidth(100, Unit.PERCENTAGE);
@@ -147,10 +197,70 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
 
         this.peptidesTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
         this.peptidesTable.addContainerProperty("Protein(s)", String.class, null, "Protein(s)", null, Table.Align.CENTER);
-        this.peptidesTable.addContainerProperty("Protein Group(s)", String.class, null, "Name", null, Table.Align.LEFT);
+        this.peptidesTable.addContainerProperty("pi", String.class, null, "PI", null, Table.Align.LEFT);
         this.peptidesTable.addContainerProperty("Sequence", String.class, null, "Sequence", null, Table.Align.CENTER);
         this.peptidesTable.addContainerProperty("Modified Sequence", String.class, null, "Modified Sequence", null, Table.Align.RIGHT);
+        this.peptidesTable.addContainerProperty("PSM_number", String.class, null, "#PSM", null, Table.Align.RIGHT);
         this.peptidesTable.addContainerProperty("Validation", String.class, null, "Validation", null, Table.Align.RIGHT);
+
+    }
+
+    /**
+     * Initialize the proteins table.
+     */
+    private void initPsmTable() {
+//        this.proteinsTable.setStyleName(ValoTheme.TABLE_SMALL);
+        this.psmTable.setCaption("<b>Peptide Spectrum Matches</b>");
+        this.psmTable.setCaptionAsHtml(true);
+        this.psmTable.setStyleName("framedpanel");
+        this.psmTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+        this.psmTable.setHeight(100, Unit.PERCENTAGE);
+        this.psmTable.setWidth(100, Unit.PERCENTAGE);
+        this.psmTable.setCacheRate(1);
+
+        this.psmTable.setSelectable(true);
+        this.psmTable.setSortEnabled(true);
+        this.psmTable.setColumnReorderingAllowed(false);
+
+        this.psmTable.setColumnCollapsingAllowed(true);
+        this.psmTable.setImmediate(true);
+        this.psmTable.setMultiSelect(false);
+
+        this.psmTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
+        this.psmTable.addContainerProperty("Protein(s)", String.class, null, "Protein(s)", null, Table.Align.CENTER);
+        this.psmTable.addContainerProperty("Sequence", String.class, null, "Sequence", null, Table.Align.CENTER);
+        this.psmTable.addContainerProperty("m/z_Error", String.class, null, "m/z Error", null, Table.Align.RIGHT);
+        this.psmTable.addContainerProperty("Charge", String.class, null, "Charge", null, Table.Align.RIGHT);
+        this.psmTable.addContainerProperty("Spectrum_File", String.class, null, "Spectrum File", null, Table.Align.RIGHT);
+        this.psmTable.addContainerProperty("Spectrum_Title", String.class, null, "Spectrum Title", null, Table.Align.RIGHT);
+        this.psmTable.addContainerProperty("Validation", String.class, null, "Validation", null, Table.Align.RIGHT);
+
+    }
+
+    /**
+     * Initialize the proteins table.
+     */
+    private void initMgfTable() {
+//        this.proteinsTable.setStyleName(ValoTheme.TABLE_SMALL);
+        this.mgfTable.setCaption("<b>Spectrum & Fragment IonsMatches</b>");
+        this.mgfTable.setCaptionAsHtml(true);
+        this.mgfTable.setStyleName("framedpanel");
+        this.mgfTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+        this.mgfTable.setHeight(100, Unit.PERCENTAGE);
+        this.mgfTable.setWidth(100, Unit.PERCENTAGE);
+        this.mgfTable.setCacheRate(1);
+
+        this.mgfTable.setSelectable(true);
+        this.mgfTable.setSortEnabled(true);
+        this.mgfTable.setColumnReorderingAllowed(false);
+
+        this.mgfTable.setColumnCollapsingAllowed(true);
+        this.mgfTable.setImmediate(true);
+        this.mgfTable.setMultiSelect(false);
+
+        this.mgfTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.CENTER);
+        this.mgfTable.addContainerProperty("x", String.class, null, "x", null, Table.Align.CENTER);
+        this.mgfTable.addContainerProperty("y", String.class, null, "y", null, Table.Align.CENTER);
 
     }
 
@@ -165,23 +275,29 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
 
         this.topPanel = new HorizontalLayout();
         this.topPanel.setSizeFull();
-        this.topPanel.setStyleName("framedpanel");
-        this.topPanel.setCaption("<b>Proteins</b>");
-        this.topPanel.setCaptionAsHtml(true);
+//       0
         this.mainViewPanel.addComponent(this.topPanel);
         topPanel.setMargin(false);
-        this.topPanel.addComponent(this.protiensTable);
+        this.topPanel.addComponent(this.proteinsTable);
         this.initProteinTable();
-
         this.bottomPanel = new HorizontalLayout();
         this.bottomPanel.setSizeFull();
-        this.bottomPanel.setCaption("<b>Peptides</b>");
-        this.bottomPanel.setCaptionAsHtml(true);
-        this.bottomPanel.setStyleName("framedpanel");
+        this.bottomPanel.setSpacing(true);
+
         this.mainViewPanel.addComponent(this.bottomPanel);
-        this.bottomPanel.addComponent(this.peptidesTable);
-        bottomPanel.setMargin(false);
+
+        this.bottomLeftPanel = new VerticalLayout();
+        this.bottomLeftPanel.setSizeFull();
+        this.bottomLeftPanel.setSpacing(true);
+
+        this.bottomPanel.addComponent(this.bottomLeftPanel);
+        this.bottomLeftPanel.addComponent(this.peptidesTable);
+        this.bottomLeftPanel.addComponent(this.psmTable);
+        this.bottomPanel.addComponent(this.mgfTable);
+        bottomLeftPanel.setMargin(false);
         this.initPeptidesTable();
+        this.initPsmTable();
+        initMgfTable();
         this.mainViewPanel.addStyleName("hidepanel");
 
     }
@@ -272,27 +388,29 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
 
     public void updateProteinTable(String peptideShakerResultsId) {
         this.peptideShakerResultsId = peptideShakerResultsId;
-        protiensTable.removeValueChangeListener(WebVisualizationPresenter.this);
-        this.protiensTable.removeAllItems();
-        
+        proteinsTable.removeValueChangeListener(WebVisualizationPresenter.this);
+        this.proteinsTable.removeAllItems();
+
         Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerResults(peptideShakerResultsId);
-       
+
         for (Object[] proteinBean : proteinsSet) {
-            this.protiensTable.addItem(proteinBean, proteinBean[1]);
+            this.proteinsTable.addItem(proteinBean, proteinBean[1]);
 
         }
-        this.protiensTable.markAsDirty();
-        protiensTable.addValueChangeListener(WebVisualizationPresenter.this);
+        this.proteinsTable.markAsDirty();
+        proteinsTable.addValueChangeListener(WebVisualizationPresenter.this);
+        proteinsTable.select(proteinsTable.getItemIds().iterator().next());
 
     }
-    public void updateTableItems(){
-    
-    
+
+    public void updateTableItems() {
+
     }
 
     @Override
     public void valueChange(Property.ValueChangeEvent event) {
 
+        this.peptidesTable.removeValueChangeListener(peptideTableListener);
         this.peptidesTable.removeAllItems();
         if (event.getProperty().getValue() == null) {
             return;
@@ -301,9 +419,11 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         int index = 1;
         for (Object[] proteinBean : proteinsSet) {
             proteinBean[0] = "" + index++;
-            this.peptidesTable.addItem(proteinBean, proteinBean[1]);
+            this.peptidesTable.addItem(proteinBean, proteinBean[3] + "__" + proteinBean[0]);
         }
         this.peptidesTable.markAsDirty();
+        this.peptidesTable.addValueChangeListener(peptideTableListener);
+        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
     }
 
 }

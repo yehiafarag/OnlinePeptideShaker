@@ -1,5 +1,7 @@
 package com.uib.onlinepeptideshaker.model;
 
+import com.compomics.util.experiment.io.massspectrometry.MgfIndex;
+import com.compomics.util.io.SerializationUtils;
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
 import com.github.jmchilton.blend4j.galaxy.HistoriesClient;
 import com.github.jmchilton.blend4j.galaxy.ToolsClient;
@@ -108,8 +110,16 @@ public abstract class LogicLayer {
 
     private final Refresher REFRESHER;
 
-//    private String bigFileId = "18436e3c3b81a0be";
-    private HashMap<String, IndexPoint> peptideIndexes;
+    /**
+     * Peptides indexes map.
+     */
+    private final HashMap<String, IndexPoint> peptideIndexes;
+    /**
+     * PSM indexes map.
+     */
+    private final HashMap<String, IndexPoint> psmIndexes;
+
+    private final MgfIndex mgfFilesIndex;
 
     /**
      * Initialize the main logic layer
@@ -121,7 +131,9 @@ public abstract class LogicLayer {
         searchGUIResultsFilesMap = new LinkedHashMap<>();
         peptideShakerVisualizationMap = new LinkedHashMap<>();
         this.REFRESHER = REFRESHER;
-        peptideIndexes = getIndexMap();
+        peptideIndexes = getPeptidesIndexMap();
+        this.psmIndexes = getPsmIndexMap();
+        mgfFilesIndex = getMGFileIndex();
     }
 
     /**
@@ -261,13 +273,16 @@ public abstract class LogicLayer {
                 if (this.peptideShakerVisualizationMap.containsKey(jobId)) {
                     arr = this.peptideShakerVisualizationMap.get(jobId);
                 } else {
-                    arr = new String[2];                    
+                    arr = new String[4];
                 }
                 if (ds.getName().endsWith("Peptide Report")) {
                     arr[1] = ds.getId();
                     this.peptideShakerVisualizationMap.put(jobId, arr);
                 } else if (ds.getName().endsWith("Protein Report")) {
                     arr[0] = ds.getId();
+                    this.peptideShakerVisualizationMap.put(jobId, arr);
+                } else if (ds.getName().endsWith("PSM Report")) {
+                    arr[2] = ds.getId();
                     this.peptideShakerVisualizationMap.put(jobId, arr);
                 } else {
 //                    this.peptideShakerVisualizationMap.remove(jobId);
@@ -568,7 +583,7 @@ public abstract class LogicLayer {
                 byteCounter += line.getBytes().length;
                 String[] arr = line.split("\\t");
                 if (arr.length > 25) {
-                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[3], arr[5], arr[6]};
+                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[3], arr[5], arr[6], arr[17]};
                     proteisnSet.add(obj);
                     lineNumber++;
                 }
@@ -600,12 +615,7 @@ public abstract class LogicLayer {
 
     }
 
-    private Set<Object[]> readFile(Set<Object[]> proteisnSet) {
-
-        return proteisnSet;
-    }
-
-    public Set<Object[]> getPeptides(String accession, String jobId){
+    public Set<Object[]> getPeptides(String accession, String jobId) {
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
         try {
             Set<IndexPoint> points = new LinkedHashSet<>();
@@ -620,7 +630,7 @@ public abstract class LogicLayer {
             }
             String fileID = this.peptideShakerVisualizationMap.get(jobId)[1];
             String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
-           
+
             BufferedReader br = null;
             URL website;
             website = new URL(path);
@@ -637,7 +647,7 @@ public abstract class LogicLayer {
                         if (arr.length < 16) {
                             continue;
                         }
-                        Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[5], arr[6], arr[15]};
+                        Object[] obj = new Object[]{arr[0], arr[1], arr[4], arr[5], arr[6], arr[13], arr[15]};
                         proteisnSet.add(obj);
                         break;
                     }
@@ -666,7 +676,126 @@ public abstract class LogicLayer {
         return proteisnSet;
     }
 
-    private Set<Object[]> readPeptidesFile(File proteinsFile) {
+    public Set<Object[]> getPsm(String accession, String jobId) {
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        try {
+            Set<IndexPoint> points = new LinkedHashSet<>();
+            for (String key : psmIndexes.keySet()) {
+
+                if (key.split("__")[0].equals(accession)) {
+                    points.add(psmIndexes.get(key));
+                    System.err.println("at key is " + key + "  " + accession);
+                }
+
+            }
+            if (points.isEmpty()) {
+                return proteisnSet;
+            }
+            String fileID = this.peptideShakerVisualizationMap.get(jobId)[2];
+            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
+
+            BufferedReader br = null;
+            URL website;
+            website = new URL(path);
+
+            for (IndexPoint point : points) {
+
+                try {//
+                    InputStream inputStream = website.openStream();
+                    inputStream.skip(point.getStartPoint());
+                    String line;
+                    br = new BufferedReader(new InputStreamReader(inputStream));
+                    while ((line = br.readLine()) != null) {
+                        String[] arr = line.split("\\t");
+                        System.out.println("at arr length " + arr.length + "   " + line);
+                        if (arr.length < 20) {
+                            continue;
+                        }
+                        Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[14], arr[10], arr[5], arr[6], arr[19]};
+                        proteisnSet.add(obj);
+                        break;
+                    }
+
+                } catch (MalformedURLException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } catch (FileNotFoundException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } catch (IOException ex) {
+                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+                } finally {
+                    if (br != null) {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
+                        }
+                    }
+                }
+
+            }
+
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return proteisnSet;
+    }
+
+    public Set<Object[]> getMGF(String accession, String jobId) {
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        try {
+            String fileID = "bd2f206dec1cc58f";//this.peptideShakerVisualizationMap.get(jobId)[2];
+            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
+
+            BufferedReader br = null;
+            URL website;
+            website = new URL(path);
+
+            try {//
+                InputStream inputStream = website.openStream();
+                inputStream.skip(mgfFilesIndex.getIndex(accession));
+                String line;
+                int index = 0;
+                br = new BufferedReader(new InputStreamReader(inputStream));
+                boolean notready = true;
+                while ((line = br.readLine()) != null) {
+                    if (notready) {
+                        if (line.startsWith("CHARGE")) {
+                            notready = false;
+                        }
+                        continue;
+                    }
+                    if (line.contains("END IONS")) {
+                        break;
+                    }
+                    String[] arr = line.replace(" ", "_").split("_");
+                    Object[] obj = new Object[]{"" + (index++), arr[0], arr[1]};
+                    proteisnSet.add(obj);
+
+                }
+
+            } catch (MalformedURLException ex) {
+                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+            } catch (FileNotFoundException ex) {
+                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+            } catch (IOException ex) {
+                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
+                    }
+                }
+            }
+
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return proteisnSet;
+    }
+
+    private Set<Object[]> readPsmIndexFile(File proteinsFile) {
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
         BufferedReader bufRdr;
         String line;
@@ -694,8 +823,10 @@ public abstract class LogicLayer {
 
     /**
      * Returns the index of all spectra in the given MGF file.
+     *
+     * @return index map of peptides
      */
-    private HashMap<String, IndexPoint> getIndexMap() {
+    private HashMap<String, IndexPoint> getPeptidesIndexMap() {
         String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
         File fileToRead = new File(basepath + "/VAADIN/Galaxy7-[Peptide_Shaker_on_data_6__Peptide_Report].tabular");
         HashMap<String, IndexPoint> indexes = new HashMap<>();
@@ -720,6 +851,65 @@ public abstract class LogicLayer {
         }
 
         return indexes;
+    }
+
+    /**
+     * Returns the index of all spectra in the given MGF file.
+     *
+     * @return index map of peptides
+     */
+    private HashMap<String, IndexPoint> getPsmIndexMap() {
+        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+        File fileToRead = new File(basepath + "/VAADIN/Galaxy86-[Peptide_Shaker_on_data_81__PSM_Report].tabular");
+        HashMap<String, IndexPoint> indexes = new HashMap<>();
+        BufferedRandomAccessFile bufferedRandomAccessFile;
+        try {
+            bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
+            long currentIndex = 0;
+            String title;
+            int lineCounter = 0;
+            String line;
+            bufferedRandomAccessFile.getNextLine();
+            while ((line = bufferedRandomAccessFile.getNextLine()) != null) {
+//            line = line.trim();
+                title = line.split("\\t")[2] + "__" + lineCounter++;
+                currentIndex = bufferedRandomAccessFile.getFilePointer();
+                IndexPoint point = new IndexPoint();
+                point.setStartPoint(currentIndex - line.getBytes().length);
+                point.setLength((line.getBytes().length));
+                indexes.put(title, point);
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return indexes;
+    }
+
+    /**
+     * Deserializes the index of an mgf file.
+     *
+     * @param mgfIndex the mgf index cui file
+     * @return the corresponding mgf index object
+     * @throws FileNotFoundException exception thrown whenever the file was not
+     * found
+     * @throws IOException exception thrown whenever an error was encountered
+     * while reading the file
+     * @throws ClassNotFoundException exception thrown whenever an error
+     * occurred while deserializing the object
+     */
+    private MgfIndex getMGFileIndex() {
+        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+        File mgfIndex = new File(basepath + "/VAADIN/qExactive01819.mgf.cui");
+        try {
+            return (MgfIndex) SerializationUtils.readObject(mgfIndex);
+        } catch (IOException | ClassNotFoundException ex) {
+            ex.printStackTrace();
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+
     }
 
 }
