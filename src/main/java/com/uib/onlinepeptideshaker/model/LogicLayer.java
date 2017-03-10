@@ -1,6 +1,7 @@
 package com.uib.onlinepeptideshaker.model;
 
 import com.compomics.util.experiment.io.massspectrometry.MgfIndex;
+//import com.compomics.util.io.FTPClient;
 import com.compomics.util.io.SerializationUtils;
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
 import com.github.jmchilton.blend4j.galaxy.HistoriesClient;
@@ -22,26 +23,30 @@ import com.github.jmchilton.blend4j.galaxy.beans.collection.request.CollectionDe
 import com.github.jmchilton.blend4j.galaxy.beans.collection.request.HistoryDatasetElement;
 import com.github.jmchilton.blend4j.galaxy.beans.collection.response.CollectionResponse;
 import com.github.wolfie.refresher.Refresher;
-import static com.sun.org.apache.xerces.internal.util.PropertyState.is;
+import com.ning.compress.lzf.LZFCompressingInputStream;
+import com.ning.compress.lzf.LZFInputStream;
+
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
 import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
 import com.uib.onlinepeptideshaker.model.beans.IndexPoint;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
 import com.vaadin.server.VaadinService;
-import java.awt.Point;
+import com.vaadin.server.VaadinSession;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,8 +54,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+//import org.apache.http.auth.UsernamePasswordCredentials;
+//import org.apache.http.client.HttpClient;
 import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
 
 /**
@@ -113,13 +122,18 @@ public abstract class LogicLayer {
     /**
      * Peptides indexes map.
      */
-    private final HashMap<String, IndexPoint> peptideIndexes;
+    private final LinkedHashMap<String, IndexPoint> peptideIndexes;
     /**
      * PSM indexes map.
      */
     private final HashMap<String, IndexPoint> psmIndexes;
 
     private final MgfIndex mgfFilesIndex;
+    /**
+     * Data utilities instance.
+     */
+    private GalaxyDataUtil dataUtil;
+    private File mgfSubFile;
 
     /**
      * Initialize the main logic layer
@@ -166,7 +180,7 @@ public abstract class LogicLayer {
     /**
      * Initialize the main logic layer components
      *
-     * @param GALAXY_INSTANCE
+     * @param GALAXY_INSTANCE instance of the galaxy server
      */
     public void initializeTheLogicLayer(GalaxyInstance GALAXY_INSTANCE) {
         this.GALAXY_INSTANCE = GALAXY_INSTANCE;
@@ -174,6 +188,8 @@ public abstract class LogicLayer {
         this.initializeToolsModel();
         this.currentGalaxyHistory = new GalaxyHistory();
         this.initGalaxyHistory(null);
+        this.dataUtil = new GalaxyDataUtil(GALAXY_INSTANCE, peptideShakerVisualizationMap);
+        VaadinSession.getCurrent().getSession().setAttribute("apiKey", GALAXY_INSTANCE.getApiKey());
 
     }
 
@@ -247,8 +263,8 @@ public abstract class LogicLayer {
         Map<String, String> historySecMap = new LinkedHashMap<>();
         for (History history : GALAXY_INSTANCE.getHistoriesClient().getHistories()) {
             if (!history.getName().equals("Web-Peptideshaker") && !history.getName().equals("Online-PeptideShaker-History")) {
-                GALAXY_INSTANCE.getHistoriesClient().deleteHistory(history.getId());
-                GALAXY_INSTANCE.getHistoriesClient().deleteHistoryRequest(history.getId());
+//                GALAXY_INSTANCE.getHistoriesClient().deleteHistory(history.getId());
+//                GALAXY_INSTANCE.getHistoriesClient().deleteHistoryRequest(history.getId());
             }
             historySecMap.put(history.getId(), history.getName());
             if (history.getId().equalsIgnoreCase(currentGalaxyHistory.getUsedHistoryId())) {
@@ -263,12 +279,12 @@ public abstract class LogicLayer {
                 continue;
             }
             Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), content.getId());
+
             if (!ds.getState().equalsIgnoreCase("ok")) {
                 trackHistory(content.getId());
             }
             if (ds.getDataTypeExt().equalsIgnoreCase("tabular")) {
                 String jobId = GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), content.getId()).getJobId();
-
                 String[] arr;
                 if (this.peptideShakerVisualizationMap.containsKey(jobId)) {
                     arr = this.peptideShakerVisualizationMap.get(jobId);
@@ -297,7 +313,8 @@ public abstract class LogicLayer {
             } else if (content.getHistoryContentType().equalsIgnoreCase("searchgui_archive")) {
                 searchGUIResultsFilesMap.put(ds.getId(), (index) + " - " + ds.getName());
             }
-            content.setUrl(ds.getFullDownloadUrl());
+
+            content.setUrl(ds.getFullDownloadUrl().split("display?key")[0]);
             content.setName((index++) + " - " + ds.getName());
             galaxyDatasetMap.put(content.getId(), content);
         }
@@ -543,148 +560,44 @@ public abstract class LogicLayer {
     }
 
     private void trackHistory(String historyDsId) {
-        GalaxyServerRefresher gref = new GalaxyServerRefresher() {
-            @Override
-            public boolean process() {
-                System.out.println("at .process()  " + GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState());
-                return (GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState().equalsIgnoreCase("ok"));
-            }
-
-            @Override
-            public void end() {
-                REFRESHER.removeListener(this);
-                updateHistoryPresenter(currentGalaxyHistory);
-                System.err.println("end !");
-            }
-        };
-        REFRESHER.addListener(gref);
-        REFRESHER.setRefreshInterval(10000);
+//        GalaxyServerRefresher gref = new GalaxyServerRefresher() {
+//            @Override
+//            public boolean process() {
+//                System.out.println("at .process()  " + GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState());
+//                return (GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), historyDsId).getState().equalsIgnoreCase("ok"));
+//            }
+//
+//            @Override
+//            public void end() {
+//                REFRESHER.removeListener(this);
+//                updateHistoryPresenter(currentGalaxyHistory);
+//                System.err.println("end !");
+//            }
+//        };
+//        REFRESHER.addListener(gref);
+//        REFRESHER.setRefreshInterval(10000);
     }
 
-    public Set<Object[]> loadPeptideShakerResults(String dataId) {
-        String fileID = this.peptideShakerVisualizationMap.get(dataId)[0];
-        String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
-        URL website;
-        Set<Object[]> proteisnSet = new LinkedHashSet<>();
-        BufferedReader br = null;
-        try {//           
-            website = new URL(path);
-            InputStream inputStream = website.openStream();
-            String line;
-            br = new BufferedReader(new InputStreamReader(inputStream));
-            /**
-             * escape header
-             *
-             */
-            br.readLine();
-            long byteCounter = 0;
-            int lineNumber = 0;
-            while ((line = br.readLine()) != null) {
-                byteCounter += line.getBytes().length;
-                String[] arr = line.split("\\t");
-                if (arr.length > 25) {
-                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[3], arr[5], arr[6], arr[17]};
-                    proteisnSet.add(obj);
-                    lineNumber++;
-                }
-                if (lineNumber == 500) {
-                    lineNumber = 0;
-                    inputStream.close();
-                    inputStream = website.openStream();
-                    inputStream.skip(byteCounter);
-                    br = new BufferedReader(new InputStreamReader(inputStream));
-                }
-            }
-
-        } catch (MalformedURLException ex) {
-            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-        } catch (FileNotFoundException ex) {
-            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-        } catch (IOException ex) {
-            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
-                }
-            }
-        }
-        return proteisnSet;// readProteinsFile(fileToRead);
+    public Set<Object[]> loadPeptideShakerDataVisulization(String dataId) {
+        dataUtil.loadPeptideShakerDataVisulization(dataId);
+        return dataUtil.getProteinsTable();
 
     }
 
     public Set<Object[]> getPeptides(String accession, String jobId) {
-        Set<Object[]> proteisnSet = new LinkedHashSet<>();
-        try {
-            Set<IndexPoint> points = new LinkedHashSet<>();
-            for (String key : peptideIndexes.keySet()) {
-                if (key.contains(accession)) {
-                    points.add(peptideIndexes.get(key));
-                }
-
-            }
-            if (points.isEmpty()) {
-                return null;
-            }
-            String fileID = this.peptideShakerVisualizationMap.get(jobId)[1];
-            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
-
-            BufferedReader br = null;
-            URL website;
-            website = new URL(path);
-
-            for (IndexPoint point : points) {
-
-                try {//
-                    InputStream inputStream = website.openStream();
-                    inputStream.skip(point.getStartPoint());
-                    String line;
-                    br = new BufferedReader(new InputStreamReader(inputStream));
-                    while ((line = br.readLine()) != null) {
-                        String[] arr = line.split("\\t");
-                        if (arr.length < 16) {
-                            continue;
-                        }
-                        Object[] obj = new Object[]{arr[0], arr[1], arr[4], arr[5], arr[6], arr[13], arr[15]};
-                        proteisnSet.add(obj);
-                        break;
-                    }
-
-                } catch (MalformedURLException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } catch (FileNotFoundException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } catch (IOException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } finally {
-                    if (br != null) {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
-                        }
-                    }
-                }
-
-            }
-
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Set<Object[]> proteisnSet = dataUtil.getPeptides(accession, jobId);
         return proteisnSet;
     }
 
     public Set<Object[]> getPsm(String accession, String jobId) {
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
         try {
-            Set<IndexPoint> points = new LinkedHashSet<>();
+            Set<Long> points = new TreeSet<>();
+
             for (String key : psmIndexes.keySet()) {
 
                 if (key.split("__")[0].equals(accession)) {
-                    points.add(psmIndexes.get(key));
-                    System.err.println("at key is " + key + "  " + accession);
+                    points.add(psmIndexes.get(key).getStartPoint());
                 }
 
             }
@@ -698,77 +611,23 @@ public abstract class LogicLayer {
             URL website;
             website = new URL(path);
 
-            for (IndexPoint point : points) {
-
-                try {//
-                    InputStream inputStream = website.openStream();
-                    inputStream.skip(point.getStartPoint());
-                    String line;
-                    br = new BufferedReader(new InputStreamReader(inputStream));
-                    while ((line = br.readLine()) != null) {
-                        String[] arr = line.split("\\t");
-                        System.out.println("at arr length " + arr.length + "   " + line);
-                        if (arr.length < 20) {
-                            continue;
-                        }
-                        Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[14], arr[10], arr[5], arr[6], arr[19]};
-                        proteisnSet.add(obj);
-                        break;
-                    }
-
-                } catch (MalformedURLException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } catch (FileNotFoundException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } catch (IOException ex) {
-                    System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-                } finally {
-                    if (br != null) {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
-                        }
-                    }
-                }
-
-            }
-
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return proteisnSet;
-    }
-
-    public Set<Object[]> getMGF(String accession, String jobId) {
-        Set<Object[]> proteisnSet = new LinkedHashSet<>();
-        try {
-            String fileID = "bd2f206dec1cc58f";//this.peptideShakerVisualizationMap.get(jobId)[2];
-            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl();
-
-            BufferedReader br = null;
-            URL website;
-            website = new URL(path);
-
-            try {//
+            try {
                 InputStream inputStream = website.openStream();
-                inputStream.skip(mgfFilesIndex.getIndex(accession));
                 String line;
-                int index = 0;
+                long pointer = 0;
                 br = new BufferedReader(new InputStreamReader(inputStream));
-                boolean notready = true;
-                while ((line = br.readLine()) != null) {
-                    if (notready) {
-                        if (line.startsWith("CHARGE")) {
-                            notready = false;
-                        }
+                for (long startIndex : points) {
+
+                    br.skip(startIndex - pointer);
+                    line = br.readLine();
+                    if (line == null) {
+                        pointer = startIndex;
+                        System.out.println("at error com.uib.onlinepeptideshaker.model.LogicLayer.getPsm()");
                         continue;
                     }
-                    if (line.contains("END IONS")) {
-                        break;
-                    }
-                    String[] arr = line.replace(" ", "_").split("_");
-                    Object[] obj = new Object[]{"" + (index++), arr[0], arr[1]};
+                    pointer = startIndex + line.toCharArray().length + 1;
+                    String[] arr = line.split("\\t");
+                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[14], arr[10], arr[5], arr[6], arr[19]};
                     proteisnSet.add(obj);
 
                 }
@@ -790,6 +649,283 @@ public abstract class LogicLayer {
             }
 
         } catch (MalformedURLException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return proteisnSet;
+    }
+
+//    public void authGoogle() {
+//        VaadinRequest request = VaadinService.getCurrentRequest();
+//        WrappedSession session = VaadinSession.getCurrent().getSession();
+//        final GoogleAuthHelper helper = new GoogleAuthHelper();
+//        if (request.getParameter("code") == null
+//                || request.getParameter("state") == null) {
+//            /*
+//	 * initial visit to the page
+//             */
+//            Label l = new Label("<a href='" + helper.buildLoginUrl() + "'>log in with google</a>");
+//            Window w = new Window("login");
+//            l.setContentMode(ContentMode.HTML);
+//            UI.getCurrent().addWindow(w);
+//            w.setSizeFull();
+//            w.setContent(l);
+//
+//
+//            /*
+//	 * set the secure state token in session to be able to track what we sent to google
+//             */
+//            session.setAttribute("state", helper.getStateToken());
+//
+//        } else if (request.getParameter("code") != null && request.getParameter("state") != null && request.getParameter("state").equals(session.getAttribute("state"))) {
+//
+//            session.removeAttribute("state");
+//
+//            try {
+//                /*
+//                * Executes after google redirects to the callback url.
+//                * Please note that the state request parameter is for convenience to differentiate
+//                * between authentication methods (ex. facebook oauth, google oauth, twitter, in-house).
+//                *
+//                * GoogleAuthHelper()#getUserInfoJson(String) method returns a String containing
+//                * the json representation of the authenticated user's information.
+//                * At this point you should parse and persist the info.
+//                 */
+//                out.println(helper.getUserInfoJson(request.getParameter("code")));
+//            } catch (IOException ex) {
+//                Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//    }
+//
+//    public HttpResponse executeGet(
+//            HttpTransport transport, JsonFactory jsonFactory, String accessToken, GenericUrl url)
+//            throws IOException {
+//        Credential credential
+//                = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(accessToken);
+//        HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
+//        return requestFactory.buildGetRequest(url).execute();
+//    }
+    public Set<Object[]> getMGF(String accession, String jobId) {
+        Set<Object[]> proteisnSet = new LinkedHashSet<>();
+        try {
+//               System.err.println("at find folder "+GALAXY_INSTANCE.getJobsClient().getJobs().iterator().next().getUrl());
+//            System.out.println("at show " + GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), "bd2f206dec1cc58f"));
+//            final String query = "select * from hda where id= 'bd2f206dec1cc58f' and metadata='accession' ";
+//            SearchClient.SearchResponse res = GALAXY_INSTANCE.getSearchClient().search(query);
+//            System.out.println("at " + res.getResults());
+
+            String fileID = "bd2f206dec1cc58f";
+//            String path = "https://test-fe.cbu.uib.no/galaxy/api/histories/d413a19dec13d11e/contents/132016f833b57406/display";
+               String path = "http://129.177.123.195/datasets/059cb1d74e748f00/display?to_ext=mgf";
+//            System.out.println("at download line"+GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), fileID).getDownloadUrl());
+//            System.out.println("at full download line"+GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), fileID).getFullDownloadUrl());
+//            System.out.println("at url line"+GALAXY_INSTANCE.getHistoriesClient().showDataset(currentGalaxyHistory.getUsedHistoryId(), fileID).getUrl());
+//            System.out.println("at pro line"+GALAXY_INSTANCE.getHistoriesClient().showProvenance(currentGalaxyHistory.getUsedHistoryId(), fileID).getParameters());
+
+//            GalaxyInstance tgalaxyInstance = GalaxyInstanceFactory.get("https://test-fe.cbu.uib.no/galaxy/", "9228c9cd3eccff77b6fc2e8d6f3c7d48");
+//            File f = tgalaxyInstance.getHistoriesClient().downloadDatasetRange("d413a19dec13d11e", "132016f833b57406", 100, 200);
+//            System.err.println("at path is " + f.length());
+//            String path = currentGalaxyHistory.getHistoryDatasetsMap().get(fileID).getUrl() + "";
+//https://usegalaxy.org/datasets/bbd44e69cb8906b5734d6a35f28f87b2/display?to_ext=tabular 
+//    GALAXY_INSTANCE.getHistoriesClient().downloadDatasetRange(currentGalaxyHistory.getUsedHistoryId(), fileID, 100, 300);
+            URL website = new URL(path);
+            long startTime = System.nanoTime();
+            try {
+                long startIndex = mgfFilesIndex.getIndex(accession);
+                int currentSpectraIndex = mgfFilesIndex.getSpectrumIndex(accession);
+                long endIndex = mgfFilesIndex.getIndex(mgfFilesIndex.getSpectrumTitle(currentSpectraIndex + 1));
+               InputStream in = website.openStream();
+//                System.out.println("at compin " + in.available()); 
+//                LZFCompressingInputStream compIn = new LZFCompressingInputStream(in);
+//                  System.out.println("at compin " + compIn.available()); 
+////                compIn.setUseFullReads(true);
+////                 System.out.println("at skip ampunt is  "+compIn.skip(startIndex));
+                 int skipper = 0;
+                 long remain = startIndex;
+//                 while(remain>0){
+////                  remain-=  compIn.skip(remain);
+//                 }
+//                 LZFInputStream uin = new LZFInputStream(compIn);
+               
+                byte[] toread = new byte[100];
+//                uin.read(toread);
+                long endTime = System.nanoTime();
+                long duration = (endTime - startTime) / 1000000l;
+                System.out.println("at speed time I " + duration + "   ");                
+                System.out.println("at to read I results " + new String(toread));
+
+//                startTime = System.nanoTime();
+//                InputStream in = website.openStream();
+//                in.skip(startIndex);
+//                toread = new byte[100];
+//                in.read(toread);
+//
+//                System.out.println("at to read results II  " + new String(toread));
+
+//                System.out.println("at pointer "+pointer+"  start "+startIndex);
+//                DataInputStream dis = new DataInputStream(in);
+//              in.skip((int)startIndex);
+//                System.out.println("at size  " + dis.available());
+//                URL location = IOUtils.class.getProtectionDomain().getCodeSource().getLocation();
+//                System.out.println(location.getPath());
+//                IURLProtocolHandler h = XugglerIO.getFactory().getHandler("http", path, URL_RDONLY_MODE);
+//
+//                Client client = Client.create();
+//                WebResource webResource = client
+//                        .resource(path);
+//                webResource.header("content-type", "multipart/byteranges");
+//                
+//                ClientResponse response = webResource.queryParam("bytes", "'"+100+"'-'"+200+"'").queryParam("x-content-type-options", "multipart/byteranges").accept(MediaType.APPLICATION_JSON)
+//                        .get(ClientResponse.class);
+//
+//                if (response.getStatus() != 200) {
+//                    throw new RuntimeException("Failed : HTTP error code : "
+//                            + response.getStatus());
+//                }
+//
+////		String output = response.getEntity(String.class).subSequence(100, 300).toString();
+//                System.out.println("Output from Server .... "+response.getEntityInputStream().available());
+//                MultivaluedMap mvm = response.getHeaders();
+//                for (Object str : mvm.keySet()) {
+//                    System.out.println(str + "   " + mvm.get(str));
+//                }
+// allocate the stream ... only for example
+// get an channel from the stream
+//                ReadableByteChannel rbc = Channels.newChannel(in);
+//                FileOutputStream fos = new FileOutputStream(file);
+//                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+//                fos.close();
+//                rbc.close();
+//                final ReadableByteChannel inputChannel = Channels.newChannel(in);
+//                
+//// copy the channels
+//                ChannelTools.fastChannelCopy(inputChannel, null);
+//// closing the channels
+//                inputChannel.close();
+//                outputChannel.close() //                  channel = Channels.newChannel(in);
+                //                ByteBuffer bb = ByteBuffer.allocate(100000000);
+                //                int redCounter = 0;
+                //                int ref = 1;
+                //
+                //                while (redCounter < endIndex && ref != -1) {
+                //                    ref = channel.read(bb);
+                //                    redCounter += ref;
+                //                }
+                //                bb.position((int) startIndex);
+                //                byte[] body = new byte[(int) (endIndex - startIndex)];
+                //                bb.get(body);
+                ////                System.out.println("at body from galaxy " + new String(body));
+                //                bb.flip();
+                //                channel.close();
+                //               FileUtils.
+                //                IOUtils.skip(in,  (startIndex));
+                //                        in     .skip(startIndex);
+                byte[] body = new byte[(int) (endIndex - startIndex)];
+//                System.out.println("at size  " + h.read(body, body.length));
+//              
+//                in.read(body);
+//                System.out.println("at body from galaxy " + new String(body));
+
+//                HttpsURLConnection myURLConnection = (HttpsURLConnection) new URL("https://test-fe.cbu.uib.no/galaxy/datasets/132016f833b57406/display?to_ext=mgf").openConnection();
+//                HttpURLConnection myURLConnection = (HttpURLConnection) new URL("http://129.177.123.195/api/histories/f7bb1edd6b95db62/contents/bd2f206dec1cc58f/display;lines=20-30").openConnection();
+//                myURLConnection.setRequestMethod("GET");
+//                myURLConnection.setRequestProperty("Accept-Ranges", "bytes");
+//                myURLConnection.setRequestProperty("If-Range", "A023EF02BD589BC472A2D6774EAE3C58");
+//
+//                HashMap input = new HashMap();
+//                input.put("bytes", ContiguousSet.create(Range.closed(100, 200), DiscreteDomain.integers()));
+//                System.out.println("at input " + input);
+//                ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+//                ObjectOutputStream out = new ObjectOutputStream(byteOut);
+//                out.writeObject(input);
+//                final String encodedCredentials = javax.xml.bind.DatatypeConverter.(byteOut.toByteArray());
+//                String jsonText = "{\"user\":\"doctoravatar@penzance.com\",\"forecast\":7,\"t\":\"vlIj\",\"zip\":94089}";
+//                ClientResponse response = GALAXY_INSTANCE.getWebResource().path("histories/f7bb1edd6b95db62/contents/bd2f206dec1cc58f/display").header("RANGE", new String("bytes=10-20")).get(ClientResponse.class);
+//.type(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, object);
+//                myURLConnection.setRequestProperty("Range", "bytes=10-20");
+//                myURLConnection.setUseCaches(true);
+//                myURLConnection.setDoInput(true);
+//                myURLConnection.setDoOutput(true);
+//                myURLConnection.addRequestProperty("Cookie", "SimpleSAMLAuthToken=_0f439165772aa98b1a7b1591a1fe2e35293c472ea6;PHPSESSID=cb4dbb4f8e070d7bfb52a14f3b06d9b8;AuthMemCookie=_f642c2170182338db4c5979b5a45a499848035a957");
+//                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+//                String inputLine;
+//                while ((inputLine = in.readLine()) != null) {
+//                    System.out.println(inputLine);
+//                }
+//                in.close();
+//                    Dataset dataset = showDataset(historyId, datasetId);
+//                    String fileExt = dataset.getDataTypeExt();
+//
+//                    File downloadedFile = super.getWebResourceContents(historyId).header("Range", "bytes=" + startRange + "-" + endRange + "")
+//                            .path(datasetId).path("display").queryParam("to_ext", fileExt)
+//                            .get(File.class);
+//http://cistrome.org/ap/datasets/53db20a47f357257/display?to_ext=txt
+//                   Cookie[] cookies =Page.getCurrent().getWebBrowser().
+//                   for(Cookie c:cookies)
+//                       System.out.println("at cooki "+c.getName());
+//                HttpClient httpclient = new HttpClient();
+//                Credentials defaultcreds = new UsernamePasswordCredentials("y.m.farag@gmail.com", "333411");
+//                httpclient.getState().setCredentials(new AuthScope("http://cistrome.org/ap/datasets/53db20a47f357257/display?to_ext=txt", 80, AuthScope.ANY_REALM), defaultcreds);
+//
+//                httpclient.getParams().setParameter("http.protocol.version", HttpVersion.HTTP_1_1);
+////                httpclient.getParams().setParameter("http.socket.timeout", 6000);
+//                httpclient.getParams().setParameter("http.protocol.content-charset", "UTF-8");
+//
+//                HostConfiguration hostconfig = new HostConfiguration();
+//                hostconfig.getParams().setParameter("Cache-Control", "max-age=7200, public");
+//                hostconfig.getParams().setParameter("http.protocol.version", HttpVersion.HTTP_1_1);
+////                hostconfig.setProxy("https://test-fe.cbu.uib.no/galaxy", 80);
+//
+//                GetMethod httpget = new GetMethod("http://cistrome.org/ap/datasets/53db20a47f357257/display?to_ext=txt");
+//
+//                HttpMethodParams mb = new HttpMethodParams();
+//                mb.setVersion(HttpVersion.HTTP_1_1);
+//                httpget.setParams(mb);
+//                httpget.setRequestHeader("Accept-Ranges", "bytes");
+//                httpget.setRequestHeader("Range", "bytes=10-20");
+//                httpget.setRequestHeader("Content-Type", "text/plain");
+//                httpget.setRequestHeader("Cache-Control", " max-age=0, s-maxage=7200");
+//
+////                httpget.getParams().setParameter("http.socket.timeout", 6000);
+//                System.out.println("resp code " + httpclient.executeMethod(hostconfig, httpget));
+//
+//                System.out.println(httpget.getParams().getParameter("http.protocol.version"));
+//
+//                System.out.println(httpget.getResponseContentLength());
+//                MultivaluedMap<String, String> headers = response.getHeaders();
+////                   Map<String,List<String>>headers=                      myURLConnection.getHeaderFields();
+//                for (String h : headers.keySet()) {
+//                    System.out.println("at header is " + h + "  " + headers.get(h) + "  " + response.getStatus());
+//                }
+////        String key = responseObjects.get("api_key").toString();
+//        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.testRequest() "+responseObjects);
+//
+//          
+//
+//                    URLConnection conn = website.openConnection();
+//                    conn.setRequestProperty("Range", "bytes=" + (startIndex) + "-" + (endIndex));
+//                    conn.setDoInput(true);
+//                    conn.setDoOutput(true);
+//                    conn.setDefaultUseCaches(false);
+//                InputStream in = conn.getInputStream();//
+//                byte[] body = new byte[(int) (endIndex - startIndex)];//byteSource.read();
+//                ChunkedInputStream cis = new ChunkedInputStream(httpget.getResponseBodyAsStream());
+//                cis.read(body);
+//                byte[] body = httpget.getResponseBody();
+//                in.read(body);
+//                System.err.println(" "+conn.getHeaderFields());
+////              
+                System.out.println("at str  " + "  input before " + " " + new String(body));
+            } catch (IOException ex) {
+                Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            long endTime = System.nanoTime();
+            long duration = (endTime - startTime) / 1000000l;
+            System.out.println("at speed time  II " + duration + "   ");
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
         }
         return proteisnSet;
@@ -826,10 +962,10 @@ public abstract class LogicLayer {
      *
      * @return index map of peptides
      */
-    private HashMap<String, IndexPoint> getPeptidesIndexMap() {
+    private LinkedHashMap<String, IndexPoint> getPeptidesIndexMap() {
         String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
         File fileToRead = new File(basepath + "/VAADIN/Galaxy7-[Peptide_Shaker_on_data_6__Peptide_Report].tabular");
-        HashMap<String, IndexPoint> indexes = new HashMap<>();
+        LinkedHashMap<String, IndexPoint> indexes = new LinkedHashMap<>();
         BufferedRandomAccessFile bufferedRandomAccessFile;
         try {
             bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
@@ -842,12 +978,14 @@ public abstract class LogicLayer {
                 title = line.split("\\t")[1].replace(";", "_") + "__" + lineCounter++;
                 currentIndex = bufferedRandomAccessFile.getFilePointer();
                 IndexPoint point = new IndexPoint();
-                point.setStartPoint(currentIndex - (line.getBytes().length));
-                point.setLength((line.getBytes().length));
+                point.setStartPoint(currentIndex - (line.toCharArray().length) - 1);
+                point.setLength((line.toCharArray().length));
                 indexes.put(title, point);
+
             }
         } catch (IOException ex) {
-            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LogicLayer.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
         return indexes;
@@ -865,6 +1003,7 @@ public abstract class LogicLayer {
         BufferedRandomAccessFile bufferedRandomAccessFile;
         try {
             bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
+
             long currentIndex = 0;
             String title;
             int lineCounter = 0;
@@ -875,13 +1014,15 @@ public abstract class LogicLayer {
                 title = line.split("\\t")[2] + "__" + lineCounter++;
                 currentIndex = bufferedRandomAccessFile.getFilePointer();
                 IndexPoint point = new IndexPoint();
-                point.setStartPoint(currentIndex - line.getBytes().length);
-                point.setLength((line.getBytes().length));
+                point.setStartPoint(currentIndex - line.toCharArray().length - 1);
+                point.setLength((line.toCharArray().length));
                 indexes.put(title, point);
+
             }
 
         } catch (IOException ex) {
-            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LogicLayer.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
         return indexes;
@@ -906,10 +1047,244 @@ public abstract class LogicLayer {
             return (MgfIndex) SerializationUtils.readObject(mgfIndex);
         } catch (IOException | ClassNotFoundException ex) {
             ex.printStackTrace();
-            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(LogicLayer.class
+                            .getName()).log(Level.SEVERE, null, ex);
         }
         return null;
 
     }
 
+    private InputStream getFile(URL url) throws IOException {
+//        InputStream is = url.openStream();
+//        DataInputStream dis = new DataInputStream(is);
+//        int size = dis.readInt();
+//        ByteBuffer tmpBuffer = ByteBuffer.allocateDirect(size);
+//        ReadableByteChannel channel = Channels.newChannel(is);
+//      
+//        channel.read(tmpBuffer);
+//        is.close();
+//        tmpBuffer.position(size)
+//        buffer = tmpBuffer.asReadOnlyBuffer();
+
+//         MappedByteBuffer buffer = new MappedByteBuffer
+        //        HttpGet request = new HttpGet(url.toString());
+        //        HttpClient client = HttpClientBuilder.create().build();
+        //        request.addHeader("Range", "bytes=300-410 ");
+        //       
+        //        
+        //        HttpResponse response = client.execute(request);
+        //        response.setHeader("Accept-Ranges", "bytes");
+        //        response.setHeader("Content-Range", "bytes 300-400/410");
+        //        System.err.println("at resp " + response.getProtocolVersion() + "  " + response.getStatusLine().getReasonPhrase());
+        //        ServletOutputStream out = response.getOutputStream();
+        //        InputStream is = response.getEntity().getContent();
+        //        return is;
+        return null;
+
+    }
+
+    MappedByteBuffer map(FileChannel wrapped, URL url, long position, long size) throws IOException {
+
+        return wrapped.map(MapMode.READ_ONLY, position, size);
+    }
+
+    private void test(URL url) {
+
+//        javaxt.http.Request request = new javaxt.http.Request(url.getPath());
+//        request.addHeader("Range", "bytes=300-410 ");
+//
+//        javaxt.http.Response response = request.getResponse();
+//        java.io.InputStream inputStream = response.getInputStream();
+//        System.out.println("at inputstream " + response.getHeaders());
+//        ByteArrayOutputStream bas = new ByteArrayOutputStream();
+//        String encoding = response.getHeader("Content-Encoding");
+//        if (encoding.equalsIgnoreCase("gzip")) {
+//
+//            GZIPInputStream gzipInputStream = null;
+//            byte[] buf = new byte[1024];
+//            int len;
+//            try {
+//                gzipInputStream = new GZIPInputStream(inputStream);
+//                while ((len = gzipInputStream.read(buf)) > 0) {
+//                    bas.write(buf, 0, len);
+//                }
+//            } catch (Exception e) {
+//            }
+//
+//            try {
+//                gzipInputStream.close();
+//            } catch (Exception e) {
+//            }
+//            try {
+//                bas.close();
+//            } catch (Exception e) {
+//            }
+//
+//        }
+//        try {
+//            inputStream.close();
+//        } catch (Exception e) {
+//        }
+    }
+
+    private void testRequest() {
+//        final com.sun.jersey.api.client.Client client = getJerseyClient();
+//         WebResource resource = client.resource("http://129.177.123.195/").path("api");
+//        final String unencodedCredentials = "yfa041@uib.no" + ":" + "333411";
+//        final String encodedCredentials = javax.xml.bind.DatatypeConverter.printBase64Binary(unencodedCredentials.getBytes());
+//       resource= resource.path("authenticate").path("baseauth");
+//        Builder b  = resource
+//                .header("Authorization", encodedCredentials).header("HTTP_CONTENT_LENGTH", new Integer("10"));
+//        
+//        final ClientResponse response = b
+//                .get(ClientResponse.class);
+//        if (response.getStatus() != 200) {
+//            System.out.println("Failed to build Galaxy API key for supplied user e-mail and password.");
+//        }
+//        MultivaluedMap<String, String> headers = response.getHeaders();
+////                   Map<String,List<String>>headers=                      myURLConnection.getHeaderFields();
+//        for (String h : headers.keySet()) {
+//            System.out.println("at header is " + h + "  " + headers.get(h) + "  " + response.getStatus());
+//        }
+//
+//        final Map<String, Object> responseObjects = response.getEntity(Map.class);
+////        String key = responseObjects.get("api_key").toString();
+//        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.testRequest() " + responseObjects);
+    }
+
+    private void testxython() {
+
+        Connection connection = null;
+//        try {
+//            Class.forName("org.sqlite.JDBC");
+//           
+//            
+//            String url = "jdbc:sqlite:sample.db";
+//            // create a database connection
+//            connection = DriverManager.getConnection(url);
+//            Statement statement = connection.createStatement();
+//            statement.setQueryTimeout(30);  // set timeout to 30 sec.
+//
+//            statement.executeUpdate("drop table if exists person");
+//            statement.executeUpdate("create table person (id integer, name string)");
+//            statement.executeUpdate("insert into person values(1, 'leo')");
+//            statement.executeUpdate("insert into person values(2, 'yui')");
+//            ResultSet rs = statement.executeQuery("select * from person");
+//            while (rs.next()) {
+//                // read the result set
+//                System.out.println("name = " + rs.getString("name"));
+//                System.out.println("id = " + rs.getInt("id"));
+//            }
+//        } catch (SQLException e) {
+//            // if the error message is "out of memory", 
+//            // it probably means no database file is found
+//            System.err.println(e.getMessage());
+//        } catch (ClassNotFoundException ex) {
+//            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
+//        } finally {
+//            try {
+//                if (connection != null) {
+//                    connection.close();
+//                }
+//            } catch (SQLException e) {
+//                // connection close failed.
+//                System.err.println(e);
+//            }
+//        }
+
+//        FTPClient ftp = new FTPClient();
+//        FTPClientConfig config = new FTPClientConfig();
+//        ftp.configure(config);
+//        boolean error = false;
+//        try {
+//            int reply;
+//            String server = "129.177.123.195/api/histories/f7bb1edd6b95db62/contents/bd2f206dec1cc58f/display";
+//            ftp.connect(server,80);
+//            System.out.println("Connected to " + server + ".");
+//            System.out.print(ftp.getReplyString());
+//
+//            // After connection attempt, you should check the reply code to verify
+//            // success.
+//            reply = ftp.getReplyCode();
+//
+//            if (!FTPReply.isPositiveCompletion(reply)) {
+//                ftp.disconnect();
+//                System.err.println("FTP server refused connection.");
+//            }
+//            // transfer files
+//            ftp.logout();
+//        } catch (IOException e) {
+//            error = true;
+//            e.printStackTrace();
+//        } finally {
+//            if (ftp.isConnected()) {
+//                try {
+//                    ftp.disconnect();
+//                } catch (IOException ioe) {
+//                    // do nothing
+//                }
+//            }
+//        }
+    }
+
+    protected com.sun.jersey.api.client.Client getJerseyClient() {
+        final ClientConfig clientConfig = new DefaultClientConfig();
+        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        com.sun.jersey.api.client.Client client = com.sun.jersey.api.client.Client.create(clientConfig);
+
+        return client;
+    }
+
+//    @GET
+//    @Produces("audio/mp3")
+//    public Response streamAudio(@HeaderParam("Range") String range) throws Exception {
+//        return buildStream(audio, range);
+//    }
+//    private Response buildStream(final File asset, final String range) throws Exception {
+//   // Firefox, Opera, IE do not send range headers
+//    if (range == null) {
+//        StreamingOutput streamer = new StreamingOutput() {
+//            @Override
+//            public void write(final OutputStream output) throws IOException, WebApplicationException {
+//
+//                final FileChannel inputChannel = new FileInputStream(asset).getChannel();
+//                final WritableByteChannel outputChannel = Channels.newChannel(output);
+//                try {
+//                    inputChannel.transferTo(0, inputChannel.size(), outputChannel);
+//                } finally {
+//                    // closing the channels
+//                    inputChannel.close();
+//                    outputChannel.close();
+//                }
+//            }
+//        };
+//        return Response.ok(streamer).header(HttpHeaders.CONTENT_LENGTH, asset.length()).build();
+//    }
+//
+//    String[] ranges = range.split("=")[1].split("-");
+//    final int from = Integer.parseInt(ranges[0]);
+//    /**
+//     * Chunk media if the range upper bound is unspecified. Chrome sends "bytes=0-"
+//     */
+//    int to = chunk_size + from;
+//    if (to >= asset.length()) {
+//        to = (int) (asset.length() - 1);
+//    }
+//    if (ranges.length == 2) {
+//        to = Integer.parseInt(ranges[1]);
+//    }
+//
+//    final String responseRange = String.format("bytes %d-%d/%d", from, to, asset.length());
+//    final RandomAccessFile raf = new RandomAccessFile(asset, "r");
+//    raf.seek(from);
+//
+//    final int len = to - from + 1;
+//    final MediaStreamer streamer = new MediaStreamer(len, raf);
+//    Response.ResponseBuilder res = Response.ok(streamer).status(206)
+//            .header("Accept-Ranges", "bytes")
+//            .header("Content-Range", responseRange)
+//            .header(HttpHeaders.CONTENT_LENGTH, streamer.getLenth())
+//            .header(HttpHeaders.LAST_MODIFIED, new Date(asset.lastModified()));
+//    }
 }

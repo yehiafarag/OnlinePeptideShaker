@@ -2,6 +2,7 @@ package com.uib.onlinepeptideshaker.presenter;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstanceFactory;
+import com.vaadin.data.Property;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.server.ThemeResource;
@@ -166,9 +167,14 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         galaxyLink.setNewItemsAllowed(true);
         galaxyLink.addItem("http://129.177.123.195/");
         galaxyLink.setItemCaption("http://129.177.123.195/", "My Galaxy installation in Bergen");
-
+        galaxyLink.addItem("https://usegalaxy.org/");
+        galaxyLink.setItemCaption("https://usegalaxy.org/", "Use Galaxy Server");
         galaxyLink.addItem("https://test-fe.cbu.uib.no/galaxy");
-        galaxyLink.setItemCaption("https://test-fe.cbu.uib.no/galaxy", "NeLS Galaxy installation in Bergen");
+        galaxyLink.setItemCaption("https://test-fe.cbu.uib.no/galaxy", "NeLS testing Galaxy installation in Bergen");
+
+        galaxyLink.addItem("https://galaxy-uio.bioinfo.no/main/");
+        galaxyLink.setItemCaption("https://galaxy-uio.bioinfo.no/main/", "Official UiB Galaxy Server");
+
         galaxyLink.setNewItemHandler((final String newItemCaption) -> {
 
             // Adds new option
@@ -276,6 +282,17 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         connectionPanel.setComponentAlignment(connectBtn, Alignment.TOP_RIGHT);
         connectionPanel.setExpandRatio(connectBtn, 0.3f);
 
+        galaxyLink.addValueChangeListener((Property.ValueChangeEvent event) -> {
+            if (galaxyLink.getValue().toString().equalsIgnoreCase("https://test-fe.cbu.uib.no/galaxy")) {
+                APIKey.setValue("9228c9cd3eccff77b6fc2e8d6f3c7d48");
+            } else if (galaxyLink.getValue().toString().equalsIgnoreCase("http://129.177.123.195/")) {
+                APIKey.setValue("71821f0c14cf63a2609f59d821bc1df3");
+            } else if (galaxyLink.getValue().toString().equalsIgnoreCase("https://usegalaxy.org/")) {
+                APIKey.setValue("75d32d7c17f3bca57f78b725c2fc1565");
+            } else if (galaxyLink.getValue().toString().equalsIgnoreCase("https://galaxy-uio.bioinfo.no/main/")) {
+                APIKey.setValue("5bd78042c3420ccb77929aa45cfe4434");
+            }
+        });
         return userInputPanelLayout;
     }
 

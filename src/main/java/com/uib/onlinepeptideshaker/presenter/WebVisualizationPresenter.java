@@ -17,6 +17,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -83,7 +84,13 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
      */
     public WebVisualizationPresenter(LogicLayer LOGIC_LAYER) {
         this.LOGIC_LAYER = LOGIC_LAYER;
-        this.proteinsTable = new Table();
+        this.proteinsTable = new Table() {
+//            @Override
+//            public void changeVariables(Object source, Map variables) {
+//                super.changeVariables(source, variables);
+//            }
+
+        };
         this.peptidesTable = new Table();
         this.psmTable = new Table();
         mgfTable = new Table();
@@ -136,7 +143,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
             }
             this.psmTable.markAsDirty();
             this.psmTable.addValueChangeListener(psmTableListener);
-             this.psmTable.select(this.psmTable.getItemIds().iterator().next());
+            this.psmTable.select(this.psmTable.getItemIds().iterator().next());
 
         };
 
@@ -391,15 +398,15 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         proteinsTable.removeValueChangeListener(WebVisualizationPresenter.this);
         this.proteinsTable.removeAllItems();
 
-        Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerResults(peptideShakerResultsId);
-
+        Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerDataVisulization(peptideShakerResultsId);
+        int index =1;
         for (Object[] proteinBean : proteinsSet) {
             this.proteinsTable.addItem(proteinBean, proteinBean[1]);
-
         }
+   
         this.proteinsTable.markAsDirty();
         proteinsTable.addValueChangeListener(WebVisualizationPresenter.this);
-        proteinsTable.select(proteinsTable.getItemIds().iterator().next());
+//        proteinsTable.select(proteinsTable.getItemIds().iterator().next());
 
     }
 

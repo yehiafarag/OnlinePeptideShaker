@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+    <display-name>Vaadin Web Application</display-name>
+     <listener>
+        <listener-class>com.uib.onlinepeptideshaker.listeners.VaadinSessionListener</listener-class>
+    </listener>
+    <!-- Session Configuration -->
+    <session-config>
+        <session-timeout>1</session-timeout>
+    </session-config>
+ 
+    <context-param>
+        <description>exported files folder url D:\CSF_Files(/home/probe/user/CSF-PR-FILES)</description>
+        <param-name>filesURL</param-name>
+        <param-value>/home/probe/user/CSF-PR-FILES</param-value>
+    </context-param>
+    
+  
+ 
+  
+</web-app>

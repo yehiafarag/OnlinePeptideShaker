@@ -15,14 +15,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
 
 /**
  * This class represents main GUI container for galaxy web interface (login) and
@@ -114,6 +106,7 @@ public class MainApplicationGUI extends VerticalLayout {
             }
 
         };
+
 
     }
 
@@ -243,10 +236,11 @@ public class MainApplicationGUI extends VerticalLayout {
 
         webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
         VISUALIZATION_MANAGER.registerView(webGalaxyTools);
-        VISUALIZATION_MANAGER.viewLayout(webGalaxyTools.getViewId());
+       
 
         webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
-        VISUALIZATION_MANAGER.registerView(webVisualization);
+        VISUALIZATION_MANAGER.registerView(webVisualization); 
+        VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
         return bodyPanelLayout;
 
     }
