@@ -1,6 +1,7 @@
 package com.uib.onlinepeptideshaker.model;
 
 import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
+import com.github.jmchilton.blend4j.galaxy.HistoriesClient;
 import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
 import com.github.jmchilton.blend4j.galaxy.beans.History;
 import com.github.jmchilton.blend4j.galaxy.beans.HistoryContents;
@@ -13,6 +14,9 @@ import com.github.jmchilton.blend4j.galaxy.beans.Workflow;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowInputs;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowInputs.WorkflowInput;
 import com.github.jmchilton.blend4j.galaxy.beans.WorkflowOutputs;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.request.CollectionDescription;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.request.HistoryDatasetElement;
+import com.github.jmchilton.blend4j.galaxy.beans.collection.response.CollectionResponse;
 import com.github.wolfie.refresher.Refresher;
 import com.github.wolfie.refresher.Refresher.RefreshListener;
 
@@ -126,15 +130,6 @@ public abstract class LogicLayer {
     public LogicLayer(Refresher REFRESHER) {
         this.REFRESHER = REFRESHER;
         this.system_history = new OnlinePeptideShakerHistory();
-//        fastaFilesMap = new LinkedHashMap<>();
-//        mgfFilesMap = new LinkedHashMap<>();
-//        mgfFilesReindexMap = new LinkedHashMap<>();
-//        searchGUIResultsFilesMap = new LinkedHashMap<>();
-//        peptideShakerVisualizationMap = new LinkedHashMap<>();
-
-//        peptideIndexes = getPeptidesIndexMap();
-//        this.psmIndexes = getPsmIndexMap();
-//        mgfFilesIndex = getMGFileIndex();
     }
 
     /**
@@ -147,9 +142,6 @@ public abstract class LogicLayer {
         this.initGalaxyHistory();
         this.initializeToolsModel();
         this.updateSystemHistory();
-//        this.updateHistoryPresenter(system_history);;
-        //        this.dataUtil = new GalaxyDataUtil(GALAXY_INSTANCE, peptideShakerVisualizationMap, currentGalaxyHistory);
-        //        this.dataUtil.permanentDeleteHistory(currentGalaxyHistory.getTempHistory().getId());
         VaadinSession.getCurrent().getSession().setAttribute("currentGalaxy", GALAXY_INSTANCE);
 
     }
@@ -164,9 +156,9 @@ public abstract class LogicLayer {
         List<History> historiesList = GALAXY_INSTANCE.getHistoriesClient().getHistories();
         Map<String, String> historiesMap = new LinkedHashMap<>();
         if (historiesList.isEmpty()) {
-            History h = GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-History");
+            History h = GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-History"));
             system_history.setCurrent_galaxy_history(h.getId());
-            system_history.setOnline_peptideShaker_job_history(GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-Job-History").getId()));
+            system_history.setOnline_peptideShaker_job_history(GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-Job-History")).getId());
             historiesMap.put(system_history.getCurrent_galaxy_history(), h.getName());
         } else {
             History tempHistoryMarker = null;
@@ -184,7 +176,7 @@ public abstract class LogicLayer {
                 }
             }
             if (system_history.getOnline_peptideShaker_job_history() == null) {
-                History h = GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-Job-History");
+                History h = GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-Job-History"));
                 system_history.setOnline_peptideShaker_job_history(h.getId());
             }
             if (system_history.getCurrent_galaxy_history() == null && tempHistoryMarker != null) {
@@ -420,7 +412,7 @@ public abstract class LogicLayer {
 
         WorkflowInputs workflowInputs = new WorkflowInputs();
         workflowInputs.setWorkflowId(selectedWf.getId());
-        workflowInputs.setDestination(new WorkflowInputs.ExistingHistory(system_history.getCurrent_galaxy_history());
+        workflowInputs.setDestination(new WorkflowInputs.ExistingHistory(system_history.getCurrent_galaxy_history()));
 
         WorkflowInput input = new WorkflowInputs.WorkflowInput(fastaFileId, WorkflowInputs.InputSourceType.HDA);
 
@@ -430,16 +422,12 @@ public abstract class LogicLayer {
         final WorkflowOutputs output = GALAXY_INSTANCE.getWorkflowsClient().runWorkflow(workflowInputs);
         GALAXY_INSTANCE.getWorkflowsClient().deleteWorkflowRequest(selectedWf.getId());
 
-        output.getOutputIds()
         List<Dataset> newDss = new ArrayList<>();
         for (String oDs : output.getOutputIds()) {
             newDss.add(GALAXY_INSTANCE.getHistoriesClient().showDataset(system_history.getCurrent_galaxy_history(), oDs));
         }
         updateGalaxyHistory(newDss);
-        checkHistory()
-    
-
-    );
+        checkHistory();
 
     }
 
@@ -498,7 +486,7 @@ public abstract class LogicLayer {
         parameters.put("searchgui_input", inputDict);
         parameters.put("outputs", "cps");
         final ToolInputs toolInput = new ToolInputs(Peptide_Shaker_Tool.getId(), parameters);
-        toolInput.setHistoryId(currentGalaxyHistory.getUsedHistoryId());
+        toolInput.setHistoryId(system_history.getCurrent_galaxy_history());
         ToolExecution exc = GALAXY_INSTANCE.getToolsClient().create(system_history.getAvailableGalaxyHistoriesMap().get(system_history.getCurrent_galaxy_history()), toolInput);
         List<Dataset> newDss = new ArrayList<>(exc.getOutputs());
         updateGalaxyHistory(newDss);
@@ -526,16 +514,55 @@ public abstract class LogicLayer {
             public void refresh(Refresher source) {
                 boolean ready = GALAXY_INSTANCE.getHistoriesClient().showHistory(system_history.getCurrent_galaxy_history()).isReady();
                 if (ready) {
-                    System.out.println("at the history is ready")
+                    System.out.println("at the history is ready");
                     updateGalaxyHistory(new ArrayList<>());
                     REFRESHER.removeListener(this);
-                    
+
                 } else {
                     System.out.println("the history still in progress");
                 }
             }
         });
 
+    }
+
+    /**
+     * Prepares a work flow which takes as input a collection list.
+     *
+     * @param inputSource The type of input source for this work flow.
+     * @return A WorkflowInputs describing the work flow.
+     * @throws InterruptedException
+     */
+    private WorkflowInput prepareWorkflowCollectionList(WorkflowInputs.InputSourceType inputSource, List<String> dsIds) {
+        String historyId = system_history.getCurrent_galaxy_history();
+        CollectionResponse collectionResponse = constructFileCollectionList(historyId, dsIds);
+        return new WorkflowInputs.WorkflowInput(collectionResponse.getId(),
+                inputSource);
+
+    }
+
+    /**
+     * Constructs a list collection from the given files within the given
+     * history.
+     *
+     * @param historyId The id of the history to build the collection within.
+     * @param inputIds The IDs of the files to add to the collection.
+     * @return A CollectionResponse object for the constructed collection.
+     */
+    private CollectionResponse constructFileCollectionList(String historyId, List<String> inputIds) {
+        HistoriesClient historiesClient = GALAXY_INSTANCE.getHistoriesClient();
+        CollectionDescription collectionDescription = new CollectionDescription();
+        collectionDescription.setCollectionType("list");
+        collectionDescription.setName("collection");
+        for (String inputId : inputIds) {
+            HistoryDatasetElement element = new HistoryDatasetElement();
+            element.setId(inputId);
+            element.setName(inputId);
+
+            collectionDescription.addDatasetElement(element);
+        }
+
+        return historiesClient.createDatasetCollection(historyId, collectionDescription);
     }
 
 //
@@ -624,20 +651,6 @@ public abstract class LogicLayer {
      */
     public abstract void updateHistoryPresenter(OnlinePeptideShakerHistory currentGalaxyHistory);
 
-//    /**
-//     * Prepares a work flow which takes as input a collection list.
-//     *
-//     * @param inputSource The type of input source for this work flow.
-//     * @return A WorkflowInputs describing the work flow.
-//     * @throws InterruptedException
-//     */
-//    private WorkflowInput prepareWorkflowCollectionList(WorkflowInputs.InputSourceType inputSource, List<String> dsIds) {
-//        String historyId = currentGalaxyHistory.getUsedHistoryId();
-//        collectionResponse = constructFileCollectionList(historyId, dsIds);
-//        return new WorkflowInputs.WorkflowInput(collectionResponse.getId(),
-//                inputSource);
-//
-//    }
 //
 //    /**
 //     * Constructs a list collection from the given files within the given
