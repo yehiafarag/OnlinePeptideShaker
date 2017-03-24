@@ -4,7 +4,7 @@ import com.github.jmchilton.blend4j.galaxy.GalaxyInstance;
 import com.github.wolfie.refresher.Refresher;
 import com.uib.onlinepeptideshaker.managers.VisualizationManager;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
-import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
+import com.uib.onlinepeptideshaker.model.beans.OnlinePeptideShakerHistory;
 import com.uib.onlinepeptideshaker.presenter.view.ToolsSectionContainer;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
@@ -96,10 +96,11 @@ public class MainApplicationGUI extends VerticalLayout {
 
         this.LOGIC_LAYER = new LogicLayer(REFRESHER) {
             @Override
-            public void updateHistoryPresenter(GalaxyHistory currentGalaxyHistory) {
+            public void updateHistoryPresenter(OnlinePeptideShakerHistory systemHistory) {
                 if (historyManagmentPresenter != null) {
-                    historyManagmentPresenter.updateHistoryPanels(currentGalaxyHistory);
-                }
+                    historyManagmentPresenter.updateHistoryPanels(systemHistory);
+                }else
+                    System.out.println("null hmpresenter");
                 if (webGalaxyTools != null) {
                     webGalaxyTools.updateForm();
                 }
@@ -168,20 +169,20 @@ public class MainApplicationGUI extends VerticalLayout {
         historyManagmentPresenter = new HistoryManagmentPresenter() {
             @Override
             public void updateSelectedHistory(String historyId) {
-                LOGIC_LAYER.updateSelectedHistory(historyId);
-                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//                LOGIC_LAYER.updateSelectedHistory(historyId);
+//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
             }
 
             @Override
             public void createNewHistory(String historyName) {
-                LOGIC_LAYER.createNewHistory(historyName);
-                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//                LOGIC_LAYER.createNewHistory(historyName);
+//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
             }
 
             @Override
             public void deleteHistoryDataset(String historyId, String historyDatasetId) {
-                LOGIC_LAYER.deleteGalaxyHistoryDataseyt(historyDatasetId, historyDatasetId);
-                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//                LOGIC_LAYER.deleteGalaxyHistoryDataseyt(historyDatasetId, historyDatasetId);
+//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
 
             }
 
@@ -250,10 +251,11 @@ public class MainApplicationGUI extends VerticalLayout {
         headerPanel.setVisible(false);
         bodyPanel.addStyleName("margintop10");
         headerPanelLayout.setHeight(40, Unit.PIXELS);
-        LOGIC_LAYER.initializeTheLogicLayer(galaxyInstant);
+        LOGIC_LAYER.connectToGalaxyServer(galaxyInstant);
         bodyPanel.removeAllComponents();
         bodyPanel.addComponent(initalizeBodyPanel());
-        historyManagmentPresenter.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+        LOGIC_LAYER.loadGalaxyHistory(null);
+//        historyManagmentPresenter.updateHistoryPanels(LOGIC_LAYER.g());
 
     }
     

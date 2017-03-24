@@ -119,7 +119,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                 return;
             }
             String value = "" + event.getProperty().getValue().toString();
-            Set<Object[]> proteinsSet = LOGIC_LAYER.getMGF(psmTable.getItem(value).getItemProperty("Spectrum_Title").getValue().toString(), this.peptideShakerResultsId);
+            Set<Object[]> proteinsSet =null;// LOGIC_LAYER.getMGF(psmTable.getItem(value).getItemProperty("Spectrum_Title").getValue().toString(), this.peptideShakerResultsId);
             int index = 1;
             for (Object[] proteinBean : proteinsSet) {
                 proteinBean[0] = "" + index++;
@@ -135,7 +135,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                 return;
             }
             String value = "" + event.getProperty().getValue().toString().split("__")[0];
-            Set<Object[]> proteinsSet = LOGIC_LAYER.getPsm(value, this.peptideShakerResultsId);
+            Set<Object[]> proteinsSet = null;//LOGIC_LAYER.getPsm(value, this.peptideShakerResultsId);
             int index = 1;
             for (Object[] proteinBean : proteinsSet) {
                 proteinBean[0] = "" + index++;
@@ -143,7 +143,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
             }
             this.psmTable.markAsDirty();
             this.psmTable.addValueChangeListener(psmTableListener);
-            this.psmTable.select(this.psmTable.getItemIds().iterator().next());
+//            this.psmTable.select(this.psmTable.getItemIds().iterator().next());
 
         };
 
@@ -376,7 +376,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                         //initialize workflow and input form
                         workFlowForm.setVisible(true);
                         //view work flow input form
-                        workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
+//                        workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
                         break;
                     case 2:
                         //view searchGUI input form
@@ -398,7 +398,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         proteinsTable.removeValueChangeListener(WebVisualizationPresenter.this);
         this.proteinsTable.removeAllItems();
 
-        Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerDataVisulization(peptideShakerResultsId);
+        Set<Object[]> proteinsSet = null;//LOGIC_LAYER.loadPeptideShakerDataVisulization(peptideShakerResultsId);
         int index =1;
         for (Object[] proteinBean : proteinsSet) {
             this.proteinsTable.addItem(proteinBean, proteinBean[1]);
@@ -422,15 +422,15 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         if (event.getProperty().getValue() == null) {
             return;
         }
-        Set<Object[]> proteinsSet = LOGIC_LAYER.getPeptides(event.getProperty().getValue().toString(), this.peptideShakerResultsId);
+        Set<Object[]> proteinsSet = null;//LOGIC_LAYER.getPeptides(event.getProperty().getValue().toString(), this.peptideShakerResultsId);
         int index = 1;
         for (Object[] proteinBean : proteinsSet) {
             proteinBean[0] = "" + index++;
             this.peptidesTable.addItem(proteinBean, proteinBean[3] + "__" + proteinBean[0]);
         }
         this.peptidesTable.markAsDirty();
-        this.peptidesTable.addValueChangeListener(peptideTableListener);
-        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
+//        this.peptidesTable.addValueChangeListener(peptideTableListener);
+//        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
     }
 
 }

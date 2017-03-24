@@ -1,19 +1,26 @@
 package com.uib.onlinepeptideshaker.model;
 
 import com.uib.onlinepeptideshaker.model.core.ReadableFile;
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
 
 /**
+ * This class represents protein file utility in the system the class will
+ * select best way to handle the interaction with galaxy server based on server
+ * capabilities
  *
- * @author yfa041
+ * @author Yehia Farag
  */
 public class ProteinFile extends ReadableFile {
 
     @Override
     public Set<Object[]> getDataFromRange(long start, long end) {
-        return null;
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
     }
 
     /**
@@ -24,7 +31,7 @@ public class ProteinFile extends ReadableFile {
     public Set<Object[]> readFullData() {
 
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
-        BufferedRandomAccessFile bufferedRandomAccessFile;
+        BufferedRandomAccessFile bufferedRandomAccessFile=null;
         try {//           
             bufferedRandomAccessFile = new BufferedRandomAccessFile(super.getLocalFilePath(), "r", 1024 * 100);
             String line;
@@ -40,6 +47,14 @@ public class ProteinFile extends ReadableFile {
             bufferedRandomAccessFile.close();
         } catch (Exception ex) {
             ex.printStackTrace();
+            if (bufferedRandomAccessFile != null) {
+                try {
+                    bufferedRandomAccessFile.close(
+                    );
+                } catch (IOException ex1) {
+                    Logger.getLogger(ProteinFile.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            }
         }
         return proteisnSet;
 

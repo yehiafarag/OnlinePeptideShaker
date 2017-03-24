@@ -2,7 +2,7 @@
     "a_galaxy_workflow": "true", 
     "annotation": "", 
     "format-version": "0.1", 
-    "name": "onlinepeptideshaker_collection", 
+    "name": "onlinepeptideshaker_collection (imported from uploaded file)", 
     "steps": {
         "0": {
             "annotation": "", 
@@ -19,7 +19,7 @@
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 199.97500610351562, 
+                "left": 199.96875, 
                 "top": 339.3125
             }, 
             "tool_errors": null, 
@@ -51,8 +51,8 @@
             "name": "Input dataset collection", 
             "outputs": [], 
             "position": {
-                "left": 160.57501220703125, 
-                "top": 494.6125183105469
+                "left": 160.5625, 
+                "top": 494.609375
             }, 
             "tool_errors": null, 
             "tool_id": null, 
@@ -190,8 +190,8 @@
                 }
             ], 
             "position": {
-                "left": 276.25, 
-                "top": 325.0124969482422
+                "left": 497.25, 
+                "top": 377
             }, 
             "post_job_actions": {
                 "HideDatasetActionmzidentML": {
@@ -248,7 +248,7 @@
                 "owner": "galaxyp", 
                 "tool_shed": "toolshed.g2.bx.psu.edu"
             }, 
-            "tool_state": "{\"__page__\": 0, \"outputs\": \"[\\\"5\\\", \\\"7\\\"]\", \"__rerun_remap_job_id__\": null, \"filtering_options\": \"{\\\"filtering_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"searchgui_input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"species_type\": \"{\\\"__current_case__\\\": 0, \\\"species_type_selector\\\": \\\"no_species_type\\\"}\", \"processing_options\": \"{\\\"processing_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\"}", 
+            "tool_state": "{\"__page__\": 0, \"outputs\": \"[\\\"3\\\", \\\"5\\\", \\\"7\\\", \\\"1\\\", \\\"cps\\\"]\", \"__rerun_remap_job_id__\": null, \"filtering_options\": \"{\\\"filtering_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"searchgui_input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"species_type\": \"{\\\"__current_case__\\\": 0, \\\"species_type_selector\\\": \\\"no_species_type\\\"}\", \"processing_options\": \"{\\\"processing_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\"}", 
             "tool_version": "1.11.0", 
             "type": "tool", 
             "uuid": "9374fcc3-0222-4df1-b6d6-9f49391ce1e3", 
@@ -266,5 +266,5 @@
             ]
         }
     }, 
-    "uuid": "beb0880f-3ce1-4f5f-b8ba-8723974f73d3"
+    "uuid": "e859a669-7283-4f53-80dc-7dc9ac13cecc"
 }

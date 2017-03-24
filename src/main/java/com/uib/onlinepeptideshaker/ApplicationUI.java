@@ -17,7 +17,15 @@ import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
@@ -46,22 +54,16 @@ public class ApplicationUI extends UI {
         // the Refresher polls automatically
         final Refresher REFRESHER = new Refresher();
         addExtension(REFRESHER);
-       
-
         Panel applicationContainer = new Panel();
         applicationContainer.setSizeFull();
         setContent(applicationContainer);
         applicationContainer.setContent(new MainApplicationGUI(REFRESHER));
-
         Page.getCurrent().addBrowserWindowResizeListener((Page.BrowserWindowResizeEvent event) -> {
             for (Window w : UI.getCurrent().getWindows()) {
                 w.center();
             }
         });
-
         mimicNelsLogin();
-//        embeddingLoginPage();
-
     }
 //
 
@@ -81,72 +83,21 @@ public class ApplicationUI extends UI {
     }
 
     private void mimicNelsLogin() {
-
         // Create a new cookie
-        initCookie("SimpleSAMLAuthToken", "_db04fc0bafe87beeb844163a166faac52f833d4b9f");
-        initCookie("PHPSESSID", "8cf622a3c6230dc488b3741abeddb6a4");
-        initCookie("AuthMemCookie", "_1a6b736f80b4103ab70d78ca324e6981d61a282b5a");
-
+        initCookie("SimpleSAMLAuthToken", "_681b5c369f6eee2e70c46b56c01f54a6eecfba2e76");
+        initCookie("PHPSESSID", "4c2b70025413d424b0de7b5dcabbee3a");
+        initCookie("AuthMemCookie", "_640a4dd2577495291e6e8477227d2a275feb4a755f");
     }
 
     private void initCookie(String name, String value) {
         // Create a new cookie
         Cookie myCookie = new Cookie(name, value);
-
 // Make cookie expire in 2 minutes
         myCookie.setMaxAge(120);
-
 // Set the cookie path.
         myCookie.setPath(VaadinService.getCurrentRequest().getContextPath());
-
 // Save cookie
         VaadinService.getCurrentResponse().addCookie(myCookie);
     }
 
-    private void embeddingLoginPage() {
-
-        VaadinServletRequest vRequset = ((VaadinServletRequest) VaadinService.getCurrentRequest());
-
-//        Cookie[] cookies = ((VaadinServletRequest) VaadinService.()).;
-//        for (Cookie cookie : cookies) {
-//            System.err.println("at cookies " + cookie.getName() + "=" + cookie.getValue());
-//        }
-        ExternalResource prueba = new ExternalResource("https://galaxy-uib.bioinfo.no/");
-        BrowserFrame browser = new BrowserFrame("Login Page", prueba);
-        browser.setSizeFull();
-
-        Window w = new Window();
-        w.setSizeFull();
-        w.setModal(true);
-        w.addCloseListener(new Window.CloseListener() {
-            @Override
-            public void windowClose(Window.CloseEvent e) {
-                System.out.println("widows are closed");
-                Cookie[] cookies = ((VaadinServletRequest) VaadinService.getCurrentRequest()).getCookies();
-                for (Cookie cookie : cookies) {
-                    System.err.println("at cookies after " + cookie.getName() + "=" + cookie.getValue());
-                }
-            }
-
-        });
-        w.addContextClickListener(new ContextClickEvent.ContextClickListener() {
-            @Override
-            public void contextClick(ContextClickEvent event) {
-                System.out.println("context is clicked");
-
-            }
-        });
-
-        this.addWindow(w);
-        w.setContent(browser);
-        w.setVisible(true);
-        try {
-            browser.handleConnectorRequest(vRequset, VaadinService.getCurrentResponse(), VaadinServlet.getCurrent().getServletContext().getContextPath());
-
-//         browser.handleConnectorRequest(request, response, DESIGN_ATTR_PLAIN_TEXT)
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            Logger.getLogger(ApplicationUI.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }

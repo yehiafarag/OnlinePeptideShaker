@@ -2,7 +2,7 @@
     "a_galaxy_workflow": "true", 
     "annotation": "", 
     "format-version": "0.1", 
-    "name": "onlinepeptideshaker", 
+    "name": "onlinepeptideshaker (imported from uploaded file)", 
     "steps": {
         "0": {
             "annotation": "", 
@@ -19,8 +19,8 @@
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 221.21249389648438, 
-                "top": 292
+                "left": 221.203125, 
+                "top": 424.3125
             }, 
             "tool_errors": null, 
             "tool_id": null, 
@@ -51,8 +51,8 @@
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 201.97500610351562, 
-                "top": 410.3000183105469
+                "left": 201.96875, 
+                "top": 542.609375
             }, 
             "tool_errors": null, 
             "tool_id": null, 
@@ -101,8 +101,8 @@
                 }
             ], 
             "position": {
-                "left": 466.42498779296875, 
-                "top": 381.70001220703125
+                "left": 466.421875, 
+                "top": 514
             }, 
             "post_job_actions": {
                 "HideDatasetActionsearchgui_results": {
@@ -190,19 +190,14 @@
                 }
             ], 
             "position": {
-                "left": 494.4375, 
-                "top": 138.6999969482422
+                "left": 770.4375, 
+                "top": 201
             }, 
             "post_job_actions": {
                 "HideDatasetActionmzidentML": {
                     "action_arguments": {}, 
                     "action_type": "HideDatasetAction", 
                     "output_name": "mzidentML"
-                }, 
-                "HideDatasetActionoutput_certificate": {
-                    "action_arguments": {}, 
-                    "action_type": "HideDatasetAction", 
-                    "output_name": "output_certificate"
                 }, 
                 "HideDatasetActionoutput_cps": {
                     "action_arguments": {}, 
@@ -248,7 +243,7 @@
                 "owner": "galaxyp", 
                 "tool_shed": "toolshed.g2.bx.psu.edu"
             }, 
-            "tool_state": "{\"__page__\": 0, \"outputs\": \"[\\\"5\\\", \\\"7\\\"]\", \"__rerun_remap_job_id__\": null, \"filtering_options\": \"{\\\"filtering_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"searchgui_input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"species_type\": \"{\\\"__current_case__\\\": 0, \\\"species_type_selector\\\": \\\"no_species_type\\\"}\", \"processing_options\": \"{\\\"processing_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\"}", 
+            "tool_state": "{\"__page__\": 0, \"outputs\": \"[\\\"3\\\", \\\"5\\\", \\\"7\\\", \\\"1\\\", \\\"cps\\\"]\", \"__rerun_remap_job_id__\": null, \"filtering_options\": \"{\\\"filtering_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\", \"searchgui_input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"species_type\": \"{\\\"__current_case__\\\": 0, \\\"species_type_selector\\\": \\\"no_species_type\\\"}\", \"processing_options\": \"{\\\"processing_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 0}\"}", 
             "tool_version": "1.11.0", 
             "type": "tool", 
             "uuid": "9374fcc3-0222-4df1-b6d6-9f49391ce1e3", 
@@ -256,15 +251,20 @@
                 {
                     "label": null, 
                     "output_name": "output_proteins", 
-                    "uuid": "488d70df-d74b-40ef-babe-a72bc51d1575"
+                    "uuid": "70fdbf94-1981-4ed0-8614-3f908a6b7e81"
+                }, 
+                {
+                    "label": null, 
+                    "output_name": "output_certificate", 
+                    "uuid": "d081c9ea-1cb3-45df-9398-0262cb003672"
                 }, 
                 {
                     "label": null, 
                     "output_name": "output_peptides", 
-                    "uuid": "475d888c-d264-4af5-bf31-fbaa23ea6985"
+                    "uuid": "83c534a8-5f34-40d8-91c2-167721294348"
                 }
             ]
         }
     }, 
-    "uuid": "0f1e688c-d836-45c7-a7fa-b3384ba8c436"
+    "uuid": "578187ff-3928-4482-8752-6a70d1b55ecf"
 }

@@ -306,18 +306,18 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
                         //initialize workflow and input form
                         workFlowForm.setVisible(true);
                         //view work flow input form
-                        workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
+//                        workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
                         break;
                     case 2:
                         searchGUIInpuPanel.setVisible(true);
                         //view searchGUI input form
-                        searchGUIForm.updateForm(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
+//                        searchGUIForm.updateForm(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
                         break;
                     case 3:
                         //view PeptideShaker input form
                          peptideShakerInpuPanel.setVisible(true);
                         //view searchGUI input form
-                        peptideShakerForm.updateForm(LOGIC_LAYER.getSearchGUIResultsFilesMap());
+//                        peptideShakerForm.updateForm(LOGIC_LAYER.getSearchGUIResultsFilesMap());
                         break;
                     default:
                         break;
@@ -336,11 +336,10 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
      *
      */
     public void updateForm() {
-        if (workFlowForm.isVisible()) {
             workFlowForm.updateInputData(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
-        } else if (searchGUIForm.isVisible()) {
-            searchGUIForm.updateForm(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());
-        }
+            searchGUIForm.updateForm(LOGIC_LAYER.getFastaFilesMap(), LOGIC_LAYER.getMgfFilesMap());            
+            peptideShakerForm.updateForm(LOGIC_LAYER.getSearchGUIResultsFilesMap());
+//        }
     }
 
 }

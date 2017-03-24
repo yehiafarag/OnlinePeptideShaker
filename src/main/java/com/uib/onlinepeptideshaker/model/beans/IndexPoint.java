@@ -5,9 +5,9 @@ package com.uib.onlinepeptideshaker.model.beans;
  *This class represents index point used as start point  for 
  * @author Yehia Farag
  */
-public class IndexPoint {
-    private long startPoint;
-    private long length;
+public class IndexPoint implements Comparable<IndexPoint>{
+    private Long startPoint;
+    private int length;
 
     public long getStartPoint() {
         return startPoint;
@@ -17,12 +17,17 @@ public class IndexPoint {
         this.startPoint = startPoint;
     }
 
-    public long getLength() {
+    public int getLength() {
         return length;
     }
 
-    public void setLength(long length) {
+    public void setLength(int length) {
         this.length = length;
+    }
+
+    @Override
+    public int compareTo(IndexPoint o) {
+        return this.startPoint.compareTo(o.startPoint);
     }
     
     

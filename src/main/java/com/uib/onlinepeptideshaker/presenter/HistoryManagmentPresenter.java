@@ -1,12 +1,15 @@
 package com.uib.onlinepeptideshaker.presenter;
 
-import com.uib.onlinepeptideshaker.model.beans.GalaxyHistory;
+import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
+import com.uib.onlinepeptideshaker.model.beans.OnlinePeptideShakerHistory;
+import com.uib.onlinepeptideshaker.model.beans.PeptideShakerViewBean;
 import com.uib.onlinepeptideshaker.presenter.view.ClickableLabel;
 import com.vaadin.data.Property;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import java.util.Set;
 
 /**
  * This class represents the user galaxy history that has all the user datasets
@@ -46,7 +49,7 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
     /**
      * Galaxy History bean.
      */
-    private GalaxyHistory currentGalaxyHistory;
+    private OnlinePeptideShakerHistory systemHistory;
 
     /**
      * Constructor to initialize the main attributes.
@@ -92,7 +95,7 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
         userGalaxyHistories.setNewItemHandler((final String newItemCaption) -> {
             // Adds new option
 
-            if (!currentGalaxyHistory.getAvailableGalaxyHistoriesMap().containsValue(newItemCaption) && userGalaxyHistories.addItem(newItemCaption) != null) {
+            if (!systemHistory.getAvailableGalaxyHistoriesNameMap().containsValue(newItemCaption) && userGalaxyHistories.addItem(newItemCaption) != null) {
                 userGalaxyHistories.setValue(newItemCaption);
             }
 
@@ -139,18 +142,18 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
      * Update the user galaxy history interface with the updated data from
      * galaxy server
      *
-     * @param galaxyHistory galaxy history bean that has all required
+     * @param systemHistory galaxy history bean that has all required
      * information from the server
      */
-    public void updateHistoryPanels(GalaxyHistory galaxyHistory) {
-        this.currentGalaxyHistory = galaxyHistory;
+    public void updateHistoryPanels(OnlinePeptideShakerHistory systemHistory) {
+        this.systemHistory = systemHistory;
         userGalaxyHistories.removeValueChangeListener(HistoryManagmentPresenter.this);
         userGalaxyHistories.removeAllItems();
-        for (String historyId : galaxyHistory.getAvailableGalaxyHistoriesMap().keySet()) {
+        for (String historyId : systemHistory.getAvailableGalaxyHistoriesNameMap().keySet()) {
             userGalaxyHistories.addItem(historyId);
-            userGalaxyHistories.setItemCaption(historyId, galaxyHistory.getAvailableGalaxyHistoriesMap().get(historyId));
+            userGalaxyHistories.setItemCaption(historyId, systemHistory.getAvailableGalaxyHistoriesNameMap().get(historyId));
         }
-        userGalaxyHistories.setValue(galaxyHistory.getUsedHistoryId());
+        userGalaxyHistories.setValue(systemHistory.getCurrent_galaxy_history());
         userGalaxyHistories.commit();
         userGalaxyHistories.addValueChangeListener(HistoryManagmentPresenter.this);
 
@@ -158,21 +161,21 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
         searchGIUHistoryDatasetPanelContent.removeAllComponents();
         peptideShakerHistoryDatasetPanelContent.removeAllComponents();
         peptideShakerHistoryDatasetResultsPanelContent.removeAllComponents();
-        for (String key : galaxyHistory.getHistoryDatasetsMap().keySet()) {
-            if (galaxyHistory.getHistoryDatasetsMap().get(key).getState() == null) {
+        for (Dataset ds : systemHistory.getHistoryDatasetsList()) {
+            if (ds.getState() == null) {
                 continue;
             }
-            ClickableLabel label = new ClickableLabel(galaxyHistory.getHistoryDatasetsMap().get(key).getName(), galaxyHistory.getHistoryDatasetsMap().get(key).getUrl(), galaxyHistory.getHistoryDatasetsMap().get(key).getId()) {
+            ClickableLabel label = new ClickableLabel(ds.getName(),ds.getUrl(), ds.getId()) {
                 @Override
                 public void performAction(String id) {
-                    deleteHistoryDataset(currentGalaxyHistory.getUsedHistoryId(), id);
+                    deleteHistoryDataset(systemHistory.getCurrent_galaxy_history(), id);
                 }
 
             };
-            label.setData(key);
-            label.setState(!(galaxyHistory.getHistoryDatasetsMap().get(key).getState() + "").replace("new", "ok").equals("ok"));
+            label.setData(ds.getId());
+            label.setState(!(ds.getState() + "").equals("ok"));
 
-            String type = galaxyHistory.getHistoryDatasetsMap().get(key).getHistoryContentType();
+            String type = ds.getDataTypeExt();
             if (type.equalsIgnoreCase("fasta") || type.equalsIgnoreCase("mgf")) {
                 searchGIUHistoryDatasetPanelContent.addComponent(label);
             } else if (type.equalsIgnoreCase("searchgui_archive")) {
@@ -183,8 +186,8 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
                 generalHistoryDatasetPanelContent.addComponent(label);
             }
         }
-        for (String jobId : galaxyHistory.getPeptideShakerVisualizationMap().keySet()) {
-            ClickableLabel label = new ClickableLabel("view data",null,jobId) {
+        for (PeptideShakerViewBean view: systemHistory.getPeptideShakerVisualizationResultsSet()) {
+            ClickableLabel label = new ClickableLabel(view.getViewName(),null,view.getId()) {
                 @Override
                 public void performAction(String id) {
                     viewPeptideshakerResults(id);
@@ -209,7 +212,7 @@ public abstract class HistoryManagmentPresenter extends VerticalLayout implement
 
     @Override
     public void valueChange(Property.ValueChangeEvent event) {
-        if (this.currentGalaxyHistory.getAvailableGalaxyHistoriesMap().containsKey(userGalaxyHistories.getValue().toString())) {
+        if (this.systemHistory.getAvailableGalaxyHistoriesNameMap().containsKey(userGalaxyHistories.getValue().toString())) {
             updateSelectedHistory(userGalaxyHistories.getValue().toString());
         } else {
             createNewHistory(userGalaxyHistories.getValue().toString());
