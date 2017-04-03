@@ -5,6 +5,7 @@ import com.github.wolfie.refresher.Refresher;
 import com.uib.onlinepeptideshaker.managers.VisualizationManager;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
 import com.uib.onlinepeptideshaker.model.beans.OnlinePeptideShakerHistory;
+import com.uib.onlinepeptideshaker.model.beans.PeptideShakerViewBean;
 import com.uib.onlinepeptideshaker.presenter.view.ToolsSectionContainer;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
@@ -187,9 +188,9 @@ public class MainApplicationGUI extends VerticalLayout {
             }
 
             @Override
-            public void viewPeptideshakerResults(String jobId) {
+            public void viewPeptideshakerResults(PeptideShakerViewBean results) {
                 VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
-                webVisualization.updateProteinTable(jobId);
+                webVisualization.updateProteinTable(results);
                 
 
             }

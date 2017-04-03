@@ -14,31 +14,15 @@ import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
  */
 public class PeptideFile extends ReadableFile {
 
+    public PeptideFile(String galaxyURL, String galaxyDatasetHistoryID, String cookiesRequestProperty) {
+        super(galaxyURL, galaxyDatasetHistoryID, cookiesRequestProperty);
+    }
+    
+
     @Override
     public Set<Object[]> getDataFromRange(long start, long end) {
         return null;
     }
 
-//    public Set<Object[]> getDataFromRanges(Set<Long> points) {
-//        Set<Object[]> peptidesSet = new LinkedHashSet<>();
-//        BufferedRandomAccessFile bufferedRandomAccessFile;
-//        try {//           
-//            bufferedRandomAccessFile = new BufferedRandomAccessFile(super.getLocalFilePath(), "r", 1024 * 100);
-//            String line;
-//            for (long point : points) {
-//                bufferedRandomAccessFile.seek(point);
-//                line = bufferedRandomAccessFile.getNextLine();
-//                String[] arr = line.split("\\t");
-//                 Object[] obj = new Object[]{arr[0], arr[1], arr[4], arr[5], arr[6], arr[13], arr[15]};
-//                peptidesSet.add(obj);
-//
-//            }
-//           
-//            bufferedRandomAccessFile.close();
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-//        return peptidesSet;
-//    }
 
 }

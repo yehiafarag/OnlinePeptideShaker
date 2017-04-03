@@ -5,6 +5,8 @@ import com.github.jmchilton.blend4j.galaxy.HistoriesClient;
 import com.github.jmchilton.blend4j.galaxy.beans.Dataset;
 import com.github.jmchilton.blend4j.galaxy.beans.History;
 import com.github.jmchilton.blend4j.galaxy.beans.HistoryContents;
+import com.github.jmchilton.blend4j.galaxy.beans.Job;
+import com.github.jmchilton.blend4j.galaxy.beans.JobDetails;
 import com.github.jmchilton.blend4j.galaxy.beans.Tool;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolExecution;
 import com.github.jmchilton.blend4j.galaxy.beans.ToolInputs;
@@ -21,6 +23,7 @@ import com.github.wolfie.refresher.Refresher;
 import com.github.wolfie.refresher.Refresher.RefreshListener;
 
 import com.uib.onlinepeptideshaker.model.beans.OnlinePeptideShakerHistory;
+import com.uib.onlinepeptideshaker.model.beans.PeptideShakerViewBean;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
@@ -65,6 +68,7 @@ public abstract class LogicLayer {
      * Online-PeptideShaker system history bean.
      */
     private OnlinePeptideShakerHistory system_history;
+    private File userFolder;
 
     /**
      * Un-used attributes yet.
@@ -120,8 +124,9 @@ public abstract class LogicLayer {
 //    /**
 //     * Data utilities instance.
 //     */
-//    private GalaxyDataUtil dataUtil;
+    private GalaxyDataUtil dataUtil;
 //    private File mgfSubFile;
+
     /**
      * Initialize the main logic layer
      *
@@ -138,10 +143,28 @@ public abstract class LogicLayer {
      * @param GALAXY_INSTANCE instance of the galaxy server
      */
     public void connectToGalaxyServer(GalaxyInstance GALAXY_INSTANCE) {
+        if (VaadinSession.getCurrent().getSession().getAttribute("ApiKey") != null) {
+            String APIKey = VaadinSession.getCurrent().getSession().getAttribute("ApiKey").toString();
+            if (!APIKey.equalsIgnoreCase(GALAXY_INSTANCE.getApiKey())) {
+                //clean history and create new folder
+                userFolder = new File(APIKey);
+                if (userFolder.exists()) {
+                    for (File tFile : userFolder.listFiles()) {
+                        tFile.delete();
+                    }
+                }
+                userFolder.delete();
+            }
+        }
+        userFolder = new File(GALAXY_INSTANCE.getApiKey() + "");
+        userFolder.mkdir();
+        VaadinSession.getCurrent().getSession().setAttribute("ApiKey", GALAXY_INSTANCE.getApiKey() + "");
+
         this.GALAXY_INSTANCE = GALAXY_INSTANCE;
         this.initGalaxyHistory();
         this.initializeToolsModel();
         this.updateSystemHistory();
+        this.dataUtil = new GalaxyDataUtil(GALAXY_INSTANCE, system_history, userFolder.getAbsolutePath());
         VaadinSession.getCurrent().getSession().setAttribute("currentGalaxy", GALAXY_INSTANCE);
 
     }
@@ -180,9 +203,9 @@ public abstract class LogicLayer {
                 system_history.setOnline_peptideShaker_job_history(h.getId());
             }
             if (system_history.getCurrent_galaxy_history() == null && tempHistoryMarker != null) {
-                system_history.setOnline_peptideShaker_job_history(tempHistoryMarker.getId());
+                system_history.setCurrent_galaxy_history(tempHistoryMarker.getId());
             } else if (system_history.getCurrent_galaxy_history() == null) {
-                system_history.setOnline_peptideShaker_job_history(GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-History")).getId());
+                system_history.setCurrent_galaxy_history(GALAXY_INSTANCE.getHistoriesClient().create(new History("Online-PeptideShaker-History")).getId());
             }
         }
         system_history.setAvailableGalaxyHistoriesNameMap(historiesMap);
@@ -244,22 +267,35 @@ public abstract class LogicLayer {
     private void updateSystemHistory() {
         Map<String, List<Dataset>> historyDSMap = new LinkedHashMap<>();
         Map<String, History> historysMap = new LinkedHashMap<>();
-
         List<History> historyList = GALAXY_INSTANCE.getHistoriesClient().getHistories();
+        Map<String, JobDetails> jobInputIds = new LinkedHashMap<>();
         for (History h : historyList) {
             historysMap.put(h.getId(), h);
             List<HistoryContents> contentsList = GALAXY_INSTANCE.getHistoriesClient().showHistoryContents(h.getId());
             List<Dataset> datasetList = new ArrayList<>();
             for (HistoryContents hc : contentsList) {
                 if (!hc.isDeleted()) {
-                    datasetList.add(GALAXY_INSTANCE.getHistoriesClient().showDataset(h.getId(), hc.getId()));
+                    Dataset ds = GALAXY_INSTANCE.getHistoriesClient().showDataset(h.getId(), hc.getId());//                    System.out.println("at ds info "+ds.getInfo());
+                    ds.setInfo(GALAXY_INSTANCE.getHistoriesClient().showProvenance(h.getId(), hc.getId()).getJobId());
+                    datasetList.add(ds);
+
                 }
             }
+
             historyDSMap.put(h.getId(), datasetList);
         }
+        List<Job> jobs = GALAXY_INSTANCE.getJobsClient().getJobsForHistory(system_history.getCurrent_galaxy_history());
+        for (Job job : jobs) {
+            try {
+                JobDetails jobDetails = GALAXY_INSTANCE.getJobsClient().showJob(job.getId());
+                jobInputIds.put(job.getId(), jobDetails);
+            } catch (Exception e) {
+            }
+        }
+
+        this.system_history.setJobInputIds(jobInputIds);
         this.system_history.setAvailableGalaxyHistoriesMap(historysMap);
         Set<String> datasetToReIndex = this.system_history.setHistoryMap(historyDSMap);
-
         //prpare map of files to convert
         this.system_history.addNewReIndexedDatasets(reIndexDatasets(datasetToReIndex));
     }
@@ -274,7 +310,6 @@ public abstract class LogicLayer {
         Map<String, String> indexMap = new LinkedHashMap<>();
         for (String ds : datasetToReIndex) {
             indexMap.put(ds, prepareAndConvertToTabular(ds));
-
         }
         return indexMap;
     }
@@ -339,7 +374,8 @@ public abstract class LogicLayer {
         if (historyId != null) {
             system_history.setCurrent_galaxy_history(historyId);
         }
-        this.updateHistoryPresenter(system_history);
+        checkHistory();
+//        this.updateHistoryPresenter(system_history);
 
     }
 
@@ -502,7 +538,11 @@ public abstract class LogicLayer {
     }
 
     private void updateGalaxyHistory(List<Dataset> newDatasets) {
-        system_history.addNewDatasets(newDatasets);
+        if (newDatasets == null) {
+            system_history.updateAllDatasetsReady();
+        } else {
+            system_history.addNewDatasets(newDatasets);
+        }
         this.updateHistoryPresenter(system_history);
 
     }
@@ -514,12 +554,13 @@ public abstract class LogicLayer {
             public void refresh(Refresher source) {
                 boolean ready = GALAXY_INSTANCE.getHistoriesClient().showHistory(system_history.getCurrent_galaxy_history()).isReady();
                 if (ready) {
-                    System.out.println("at the history is ready");
-                    updateGalaxyHistory(new ArrayList<>());
+                    System.out.println("at --------------------- at the history is ready --------------------- ");
+                    updateGalaxyHistory(null);
                     REFRESHER.removeListener(this);
 
                 } else {
-                    System.out.println("the history still in progress");
+                    System.out.println("--------------------- at the history not ready --------------------- ");
+
                 }
             }
         });
@@ -564,6 +605,47 @@ public abstract class LogicLayer {
 
         return historiesClient.createDatasetCollection(historyId, collectionDescription);
     }
+
+    /**
+     * Load peptide shaker results
+     *
+     * @param results PeptideShakerResults bean
+     * @return set of object array to initialize protein table
+     */
+    public Set<Object[]> loadPeptideShakerDataVisulization(PeptideShakerViewBean results) {
+        dataUtil.loadPeptideShakerDataVisulization(results);
+        return dataUtil.getProteinsTable();
+
+    }
+
+    /**
+     * Get peptides information for the selected protein
+     *
+     * @param accession selected protein accession
+     * @return set of object array to initialize peptides table
+     */
+    public Set<Object[]> getPeptides(String accession) {
+        Set<Object[]> peptideTableInformation = dataUtil.getPeptidesInformationForSelectedProtein(accession);
+        return peptideTableInformation;
+    }
+     /**
+     * Get PSM information required for initializing and updating PSM table
+     *
+     * @param peptideSequence protein accession
+     * @return Set of Object array required as data source for the table
+     */
+    public Set<Object[]> getPsmInformationForSelectedPeptide(String peptideSequence) {
+        Set<Object[]> proteisnSet = dataUtil.getPsmInformationForSelectedPeptide(peptideSequence);
+        return proteisnSet;
+    }
+//
+    /**
+     *Get MGF information required for initializing and updating MGF table
+     * @param spectraTitle selected spectra title
+     * @return Set of Object array required as data source for the table
+     */
+    public Set<Object[]> getMgfInformationForSelectedSpectra(String spectraTitle) {
+        return dataUtil.getMgfInformationForSelectedSpectra(spectraTitle);}
 
 //
 //    /**
@@ -676,106 +758,10 @@ public abstract class LogicLayer {
 //        return historiesClient.createDatasetCollection(historyId, collectionDescription);
 //    }
 //
-//    /**
-//     *
-//     * @param dataId
-//     * @return
-//     */
-//    public Set<Object[]> loadPeptideShakerDataVisulization(String dataId) {
-//        dataUtil.loadPeptideShakerDataVisulization(dataId);
-//        return dataUtil.getProteinsTable();
 //
-//    }
+//    
 //
-//    /**
-//     *
-//     * @param accession
-//     * @param jobId
-//     * @return
-//     */
-//    public Set<Object[]> getPeptides(String accession, String jobId) {
-//        Set<Object[]> proteisnSet = dataUtil.getPeptides(accession, jobId);
-//        return proteisnSet;
-//    }
-//
-//    /**
-//     *
-//     * @param accession
-//     * @param jobId
-//     * @return
-//     */
-//    public Set<Object[]> getPsm(String accession, String jobId) {
-//        Set<Object[]> proteisnSet = new LinkedHashSet<>();
-//        try {
-//            Set<Long> points = new TreeSet<>();
-//
-//            for (String key : psmIndexes.keySet()) {
-//
-//                if (key.split("__")[0].equals(accession)) {
-//                    points.add(psmIndexes.get(key).getStartPoint());
-//                }
-//
-//            }
-//            if (points.isEmpty()) {
-//                return proteisnSet;
-//            }
-//            String fileID = this.peptideShakerVisualizationMap.get(jobId)[2];
-//            String path = currentGalaxyHistory.getHistoryDatasetsList().get(fileID).getUrl();
-//
-//            BufferedReader br = null;
-//            URL website;
-//            website = new URL(path);
-//
-//            try {
-//                InputStream inputStream = website.openStream();
-//                String line;
-//                long pointer = 0;
-//                br = new BufferedReader(new InputStreamReader(inputStream));
-//                for (long startIndex : points) {
-//
-//                    br.skip(startIndex - pointer);
-//                    line = br.readLine();
-//                    if (line == null) {
-//                        pointer = startIndex;
-//                        System.out.println("at error com.uib.onlinepeptideshaker.model.LogicLayer.getPsm()");
-//                        continue;
-//                    }
-//                    pointer = startIndex + line.toCharArray().length + 1;
-//                    String[] arr = line.split("\\t");
-//                    Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[14], arr[10], arr[5], arr[6], arr[19]};
-//                    proteisnSet.add(obj);
-//
-//                }
-//
-//            } catch (MalformedURLException ex) {
-//                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-//            } catch (FileNotFoundException ex) {
-//                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-//            } catch (IOException ex) {
-//                System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + ex.getLocalizedMessage());
-//            } finally {
-//                if (br != null) {
-//                    try {
-//                        br.close();
-//                    } catch (IOException e) {
-//                        System.out.println("com.uib.onlinepeptideshaker.model.LogicLayer.loadPeptideShakerResults()" + e.getLocalizedMessage());
-//                    }
-//                }
-//            }
-//
-//        } catch (MalformedURLException ex) {
-//            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        return proteisnSet;
-//    }
-//
-//    /**
-//     *
-//     * @param accession
-//     * @param jobId
-//     * @return
-//     */
-//    public Set<Object[]> getMGF(String accession, String jobId) {
+   
 //        Set<Object[]> proteisnSet = new LinkedHashSet<>();
 //        try {
 ////               System.err.println("at find folder "+GALAXY_INSTANCE.getJobsClient().getJobs().iterator().next().getUrl());
@@ -1097,28 +1083,5 @@ public abstract class LogicLayer {
 //        return indexes;
 //    }
 //
-//    /**
-//     * Deserializes the index of an mgf file.
-//     *
-//     * @param mgfIndex the mgf index cui file
-//     * @return the corresponding mgf index object
-//     * @throws FileNotFoundException exception thrown whenever the file was not
-//     * found
-//     * @throws IOException exception thrown whenever an error was encountered
-//     * while reading the file
-//     * @throws ClassNotFoundException exception thrown whenever an error
-//     * occurred while deserializing the object
-//     */
-//    private MgfIndex getMGFileIndex() {
-//        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-//        File mgfIndex = new File(basepath + "/VAADIN/qExactive01819.mgf.cui");
-//        try {
-//            return (MgfIndex) SerializationUtils.readObject(mgfIndex);
-//        } catch (IOException | ClassNotFoundException ex) {
-//            ex.printStackTrace();
-//            Logger.getLogger(LogicLayer.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        return null;
-//
-//    }
+//    
 }

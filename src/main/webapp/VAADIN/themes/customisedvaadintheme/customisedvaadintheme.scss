@@ -435,22 +435,22 @@
         background-color:#ffafaf !important;
     }
 
-    .closebtn{
-        border: 1px solid white;
-        max-width: 16px !important;
-        min-height:10px;
-        height:auto !important;
-        padding: 2px !important;
-        margin-right: 5px !important;
-        cursor: pointer !important;
-        background-color: white;
-        border: 1px solid lightgray;
-        border-radius: 2px;
-        background-image: url("img/close.png");
-        background-repeat: no-repeat;
-        background-size: contain;
-        background-position: center;
-    }
+    /*    .closebtn{
+            border: 1px solid white;
+            max-width: 16px !important;
+            min-height:10px;
+            height:auto !important;
+            padding: 2px !important;
+            margin-right: 5px !important;
+            cursor: pointer !important;
+            background-color: white;
+            border: 1px solid lightgray;
+            border-radius: 2px;
+            background-image: url("img/close.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center;
+        }*/
     .deletablelabel div {
         overflow: hidden !important;
         text-overflow: ellipsis !important;
@@ -613,5 +613,34 @@
     }
     .toolviewframe .v-table-header-wrap{
         width:100% !important;
+    }
+    .v-slot-savebtn{
+        background-image:url(img/floppy.png) !important;
+        background-size:auto 90% !important;
+        background-position:center;
+        background-repeat:no-repeat;
+        max-height:20px !important;
+        max-width:20px !important;
+        border-radius:5px;
+        cursor: pointer !important;
+
+    }
+       .v-slot-savemultibtn{
+        background-image:url(img/records.png) !important;
+        background-size:auto 90% !important;
+        background-position:center;
+        background-repeat:no-repeat;
+        max-height:20px !important;
+        max-width:20px !important;
+        border-radius:5px;
+        cursor: pointer !important;
+
+    }
+    .v-slot-closebtn{
+        background-image: url(img/close.png) !important;
+        background-size:contain!important;
+        background-position: center !important;
+        background-repeat: no-repeat;	
+        cursor: pointer !important;
     }
 }

@@ -174,6 +174,9 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
 
         galaxyLink.addItem("https://galaxy-uio.bioinfo.no/main/");
         galaxyLink.setItemCaption("https://galaxy-uio.bioinfo.no/main/", "Official UiB Galaxy Server");
+        
+         galaxyLink.addItem("https://usegalaxyp.org/");
+        galaxyLink.setItemCaption("https://usegalaxyp.org/", "GalaxyP");
 
         galaxyLink.setNewItemHandler((final String newItemCaption) -> {
 
@@ -291,6 +294,8 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
                 APIKey.setValue("75d32d7c17f3bca57f78b725c2fc1565");
             } else if (galaxyLink.getValue().toString().equalsIgnoreCase("https://galaxy-uio.bioinfo.no/main/")) {
                 APIKey.setValue("5bd78042c3420ccb77929aa45cfe4434");
+            } else if (galaxyLink.getValue().toString().equalsIgnoreCase("https://usegalaxyp.org/")) {
+                APIKey.setValue("61062cd3acb2433c1e1ed66d6560357f");
             }
         });
         return userInputPanelLayout;
@@ -381,6 +386,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         try {
             galaxyInstance.getConfigurationClient().getRawConfiguration().keySet();
             galaxyInstance.getGalaxyUrl();
+            System.out.println("at galaxy conn "+galaxyInstance.getConfigurationClient().getRawConfiguration());
         } catch (Exception e) {
             galaxyConnected = false;
             connectionLabel.setValue("<font color='red'>Galaxy is not connected, check input data <font size='3' color='red'>&#128530;</font></font>");

@@ -1,6 +1,7 @@
 package com.uib.onlinepeptideshaker.model;
 
 import com.uib.onlinepeptideshaker.model.core.ReadableFile;
+import com.uib.onlinepeptideshaker.model.util.LocalIndexFile;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,13 +16,13 @@ import uk.ac.ebi.pride.tools.braf.BufferedRandomAccessFile;
  *
  * @author Yehia Farag
  */
-public class ProteinFile extends ReadableFile {
+public class ProteinFile extends LocalIndexFile {
 
-    @Override
-    public Set<Object[]> getDataFromRange(long start, long end) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
+    public ProteinFile(String localFileId, String folderURL, String fileURL, String cookiesRequestProperty) {
+        super(localFileId, folderURL, fileURL, cookiesRequestProperty);
     }
+
+   
 
     /**
      * Read the full file at once
@@ -33,7 +34,7 @@ public class ProteinFile extends ReadableFile {
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
         BufferedRandomAccessFile bufferedRandomAccessFile=null;
         try {//           
-            bufferedRandomAccessFile = new BufferedRandomAccessFile(super.getLocalFilePath(), "r", 1024 * 100);
+            bufferedRandomAccessFile = new BufferedRandomAccessFile(super.getLocalFile(), "r", 1024 * 100);
             String line;
             /**
              * escape header

@@ -2,6 +2,7 @@ package com.uib.onlinepeptideshaker.presenter;
 
 import com.uib.onlinepeptideshaker.managers.RegistrableView;
 import com.uib.onlinepeptideshaker.model.LogicLayer;
+import com.uib.onlinepeptideshaker.model.beans.PeptideShakerViewBean;
 import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -17,7 +18,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -119,9 +119,9 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
                 return;
             }
             String value = "" + event.getProperty().getValue().toString();
-            Set<Object[]> proteinsSet =null;// LOGIC_LAYER.getMGF(psmTable.getItem(value).getItemProperty("Spectrum_Title").getValue().toString(), this.peptideShakerResultsId);
+            Set<Object[]> mgfInformationSet =  LOGIC_LAYER.getMgfInformationForSelectedSpectra(psmTable.getItem(value).getItemProperty("Spectrum_Title").getValue().toString());
             int index = 1;
-            for (Object[] proteinBean : proteinsSet) {
+            for (Object[] proteinBean : mgfInformationSet) {
                 proteinBean[0] = "" + index++;
                 this.mgfTable.addItem(proteinBean, proteinBean[0]);
             }
@@ -130,12 +130,11 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         peptideTableListener = (Property.ValueChangeEvent event) -> {
             this.psmTable.removeValueChangeListener(psmTableListener);
             this.psmTable.removeAllItems();
-
             if (event.getProperty().getValue() == null) {
                 return;
             }
             String value = "" + event.getProperty().getValue().toString().split("__")[0];
-            Set<Object[]> proteinsSet = null;//LOGIC_LAYER.getPsm(value, this.peptideShakerResultsId);
+            Set<Object[]> proteinsSet = LOGIC_LAYER.getPsmInformationForSelectedPeptide(value);
             int index = 1;
             for (Object[] proteinBean : proteinsSet) {
                 proteinBean[0] = "" + index++;
@@ -143,7 +142,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
             }
             this.psmTable.markAsDirty();
             this.psmTable.addValueChangeListener(psmTableListener);
-//            this.psmTable.select(this.psmTable.getItemIds().iterator().next());
+            this.psmTable.select(this.psmTable.getItemIds().iterator().next());
 
         };
 
@@ -393,20 +392,20 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         }
     }
 
-    public void updateProteinTable(String peptideShakerResultsId) {
-        this.peptideShakerResultsId = peptideShakerResultsId;
+    public void updateProteinTable(PeptideShakerViewBean results) {
+        this.peptideShakerResultsId = results.getId();
         proteinsTable.removeValueChangeListener(WebVisualizationPresenter.this);
         this.proteinsTable.removeAllItems();
 
-        Set<Object[]> proteinsSet = null;//LOGIC_LAYER.loadPeptideShakerDataVisulization(peptideShakerResultsId);
-        int index =1;
+        Set<Object[]> proteinsSet = LOGIC_LAYER.loadPeptideShakerDataVisulization(results);
+        int index = 1;
         for (Object[] proteinBean : proteinsSet) {
             this.proteinsTable.addItem(proteinBean, proteinBean[1]);
         }
-   
+
         this.proteinsTable.markAsDirty();
         proteinsTable.addValueChangeListener(WebVisualizationPresenter.this);
-//        proteinsTable.select(proteinsTable.getItemIds().iterator().next());
+        proteinsTable.select(proteinsTable.getItemIds().iterator().next());
 
     }
 
@@ -422,15 +421,15 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         if (event.getProperty().getValue() == null) {
             return;
         }
-        Set<Object[]> proteinsSet = null;//LOGIC_LAYER.getPeptides(event.getProperty().getValue().toString(), this.peptideShakerResultsId);
+        Set<Object[]> proteinsSet = LOGIC_LAYER.getPeptides(event.getProperty().getValue().toString());
         int index = 1;
         for (Object[] proteinBean : proteinsSet) {
             proteinBean[0] = "" + index++;
             this.peptidesTable.addItem(proteinBean, proteinBean[3] + "__" + proteinBean[0]);
         }
         this.peptidesTable.markAsDirty();
-//        this.peptidesTable.addValueChangeListener(peptideTableListener);
-//        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
+        this.peptidesTable.addValueChangeListener(peptideTableListener);
+        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
     }
 
 }

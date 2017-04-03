@@ -84,9 +84,9 @@ public class ApplicationUI extends UI {
 
     private void mimicNelsLogin() {
         // Create a new cookie
-        initCookie("SimpleSAMLAuthToken", "_681b5c369f6eee2e70c46b56c01f54a6eecfba2e76");
-        initCookie("PHPSESSID", "4c2b70025413d424b0de7b5dcabbee3a");
-        initCookie("AuthMemCookie", "_640a4dd2577495291e6e8477227d2a275feb4a755f");
+        initCookie("SimpleSAMLAuthToken", "_7411f1e6cada8618309cb1e35bf6ddd28b77f8e7ea");
+        initCookie("PHPSESSID", "89219cd1f1082162547a7bbfc68b5290");
+        initCookie("AuthMemCookie", "_2929cdb96770acd4f7fe1be5b3cb0d81a9e553960d");
     }
 
     private void initCookie(String name, String value) {
