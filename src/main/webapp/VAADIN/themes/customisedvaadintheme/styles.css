@@ -13623,3 +13623,142 @@ div.v-layout.v-horizontal.v-widget {
 	background-repeat: no-repeat;
 	cursor: pointer !important;
 }
+
+.customisedvaadintheme .centerpanel {
+	max-width: 335px;
+	max-height: 150px;
+	font-size: 12px !important;
+	padding: 0px;
+	line-height: 0%;
+}
+
+.customisedvaadintheme .galaxybtn {
+	max-width: 100px;
+	padding: 10px;
+	background-image: url(img/galaxyLogo.png);
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: center;
+	min-width: 25px;
+	min-height: 25px;
+}
+
+.customisedvaadintheme .v-slot-galaxybtn {
+	max-width: 100px;
+	border-radius: 5px;
+	border: 2px solid black;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+
+.customisedvaadintheme .settingbtn {
+	background-image: url(img/cog-o.svg);
+	background-repeat: no-repeat;
+	background-size: auto 90%;
+	background-position: center;
+	border: 2px solid whitesmoke;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .settingbtn:hover {
+	background-color: lightgray;
+	border: 0px solid gray;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .v-slot-settingbtn {
+	border-radius: 5px;
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+	background-position: center;
+	background-color: whitesmoke;
+	border: 2px solid lightgray;
+	border-left: none;
+}
+
+.customisedvaadintheme .btn {
+	margin-top: 16px;
+	border-radius: 5px;
+	font-weight: bold;
+	max-height: 25px;
+	max-width: 140px;
+	color: gray;
+	background-color: whitesmoke;
+}
+
+.customisedvaadintheme .btn:hover {
+	background-color: red !important;
+}
+
+.customisedvaadintheme .btntxt {
+	float: center !important;
+	max-height: 20px !important;
+	font-size: 15px;
+	font-weight: bold !important;
+	position: relative;
+	text-align: center;
+}
+
+.customisedvaadintheme .v-slot-btntxt {
+	background-color: whitesmoke !important;
+	border-top: 2px solid lightgray;
+	border-bottom: 2px solid lightgray;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .v-slot-btntxt:hover {
+	background-color: gray !important;
+	border-color: gray;
+	color: white;
+}
+
+.customisedvaadintheme .margintop40 {
+	margin-top: 40px;
+}
+
+.customisedvaadintheme .disconnect {
+	color: white !important;
+	background: gray !important;
+}
+
+.customisedvaadintheme .v-slot-disconnect {
+	color: white !important;
+	background-color: green !important;
+	border-color: green;
+}
+
+.customisedvaadintheme .rightbtnscontainer {
+	margin-top: 50px;
+	min-width: 16px;
+	max-width: 64px;
+	max-height: 252px;
+}
+
+.customisedvaadintheme .smallmenubtn {
+	background-color: whitesmoke;
+	border: 1px solid lightgray;
+	border-radius: 50px;
+	max-width: 32px;
+	max-height: 32px;
+	cursor: pointer;
+}
+
+.customisedvaadintheme .smallmenubtn:hover {
+	background-color: lightgray;
+	border-color: gray;
+}
+
+.customisedvaadintheme .selectedsmallbtn {
+	background-color: lightgray;
+	border-color: gray;
+	max-width: 64px;
+	max-height: 64px;
+}
+
+.customisedvaadintheme .smallmenubtn img {
+	padding: 20%;
+}
+
+.customisedvaadintheme .lightgraylayout {
+	background-color: lightgray;
+}

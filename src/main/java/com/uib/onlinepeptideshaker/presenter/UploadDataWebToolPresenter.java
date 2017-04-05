@@ -89,7 +89,7 @@ public class UploadDataWebToolPresenter implements RegistrableView, LayoutEvents
     }
 
     @Override
-    public AbsoluteLayout getMinimizeComponent() {
+    public AbsoluteLayout getControlButton() {
         return sideButton;
     }
 

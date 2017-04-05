@@ -625,7 +625,7 @@
         cursor: pointer !important;
 
     }
-       .v-slot-savemultibtn{
+    .v-slot-savemultibtn{
         background-image:url(img/records.png) !important;
         background-size:auto 90% !important;
         background-position:center;
@@ -643,4 +643,137 @@
         background-repeat: no-repeat;	
         cursor: pointer !important;
     }
+    .centerpanel{
+       max-width: 335px;
+	max-height: 150px;
+	font-size: 12px !important;
+	padding: 0px;
+	line-height: 0%;
+
+    }
+  
+
+
+.galaxybtn {
+	max-width: 100px;
+	padding: 10px;
+	background-image: url(img/galaxyLogo.png);
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: center;
+	min-width: 25px;
+	min-height: 25px;
+}
+ .v-slot-galaxybtn {
+	max-width: 100px;
+	border-radius: 5px;
+	border:2px solid black;
+	border-top-right-radius:0px;
+	border-bottom-right-radius:0px;
+}
+ .settingbtn {
+	background-image: url(img/cog-o.svg);
+	background-repeat: no-repeat;
+	background-size: auto 90%;
+	background-position: center;
+	border:2px solid whitesmoke;
+	cursor:pointer;
+	
+} 
+.settingbtn:hover {
+	background-color: lightgray;
+	border: 0px solid gray;	
+	cursor: pointer;
+}
+ .v-slot-settingbtn {
+	border-radius:5px;
+	border-top-left-radius:0px;
+	border-bottom-left-radius:0px;
+	background-position: center;
+	background-color:whitesmoke;
+	border:2px solid lightgray;
+	border-left:none;
+
+}
+
+
+.btn {
+	margin-top: 16px;
+	border-radius: 5px;
+	font-weight: bold;
+	max-height: 25px;
+	max-width: 140px;
+	color: gray;
+	background-color:whitesmoke;
+}
+.btn:hover{
+	background-color:red !important;
+}
+
+
+ .btntxt {
+	
+	float: center !important;
+	max-height: 20px !important;
+	font-size: 15px;
+	font-weight: bold !important;
+	position: relative;
+	text-align: center;
+	
+}
+ .v-slot-btntxt {
+ 	background-color: whitesmoke !important;
+ 	border-top:2px solid lightgray;
+ 	border-bottom:2px solid lightgray;
+ 	cursor:pointer;
+	
+}
+
+ .v-slot-btntxt:hover {
+	background-color: gray !important;
+	border-color:gray;
+	color: white;
+}
+.margintop40{
+    margin-top: 40px;
+}
+.disconnect{
+    color:white !important;
+    background: gray !important;
+}
+.v-slot-disconnect {
+	color: white !important;
+	background-color: green !important;
+	border-color:green;
+}
+.rightbtnscontainer {
+	margin-top:50px;
+	min-width: 16px;
+	max-width: 64px;
+        max-height:252px;
+}
+.smallmenubtn {
+	background-color: whitesmoke;
+	border: 1px solid lightgray;
+	border-radius: 50px;
+	max-width: 32px;
+	max-height: 32px;
+	cursor:pointer;
+}
+.smallmenubtn:hover {
+	background-color: lightgray;
+	border-color: gray;
+}
+.selectedsmallbtn{
+	background-color: lightgray;
+	border-color: gray;
+		max-width: 64px;
+	max-height: 64px;
+}
+.smallmenubtn img{
+	padding:20%;
+}
+.lightgraylayout{
+    background-color: lightgray;
+}
 }

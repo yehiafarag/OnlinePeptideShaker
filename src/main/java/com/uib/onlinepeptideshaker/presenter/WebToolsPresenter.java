@@ -253,7 +253,7 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
     }
 
     @Override
-    public AbsoluteLayout getMinimizeComponent() {
+    public AbsoluteLayout getControlButton() {
         return sideButton;
     }
 

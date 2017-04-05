@@ -80,6 +80,10 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
      * Main galaxy server instance.
      */
     private GalaxyInstance galaxyInstance;
+    /**
+     * Connect to galaxy button
+     */
+    private Button connectBtn ;
 
     /**
      * Hid the connection panel.
@@ -122,6 +126,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         maximizedLayout = this.initializeUserInputPanel();
         GalaxyConnectionPanel.this.setContent(maximizedLayout);
         UI.getCurrent().addWindow(GalaxyConnectionPanel.this);
+        super.setVisible(false);
         minimizedLayout = new VerticalLayout();
         this.minimizedLayout.setVisible(false);
         this.minimizedLayout.addLayoutClickListener(GalaxyConnectionPanel.this);
@@ -275,7 +280,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
         connectionPanel.setComponentAlignment(connectionLabel, Alignment.TOP_LEFT);
         connectionPanel.setExpandRatio(connectionLabel, 0.7f);
 
-        Button connectBtn = new Button("Connect");
+        connectBtn = new Button("Connect");
         connectBtn.setStyleName(ValoTheme.BUTTON_TINY);
         connectBtn.addStyleName(ValoTheme.BUTTON_SMALL);
         connectBtn.setWidth(100, Unit.PERCENTAGE);
@@ -303,27 +308,7 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
 
     @Override
     public void buttonClick(Button.ClickEvent event) {
-        if (galaxyConnected) {
-            event.getButton().setCaption("Connect");
-            galaxyConnected = false;
-            connectionLabel.setValue("Galaxy is not connected <font size=\"3\" color=\"red\"> &#128528;</font>");
-            galaxyLinkContainer.setEnabled(!galaxyConnected);
-            inputTabSheet.setEnabled(!galaxyConnected);
-            this.setClosable(false);
-            return;
-
-        } else {
-            galaxyConnected = connectToGalaxy();
-            if (galaxyConnected) {
-                connectionLabel.setValue("Galaxy is connected <font size=\"3\" color=\"green\"> &#128522;</font>");
-                event.getButton().setCaption("Disconnect");
-
-            }
-            galaxyLinkContainer.setEnabled(!galaxyConnected);
-            inputTabSheet.setEnabled(!galaxyConnected);
-        }
-
-        this.connectedToGalaxy(galaxyInstance);
+        this.validateAndConnect();
 
     }
 
@@ -437,6 +422,31 @@ public abstract class GalaxyConnectionPanel extends Window implements Button.Cli
     @Override
     public void layoutClick(LayoutEvents.LayoutClickEvent event) {
         this.maximizeView();
+    }
+    
+    public void validateAndConnect(){
+        if (galaxyConnected) {
+            connectBtn.setCaption("Connect");
+            galaxyConnected = false;
+            connectionLabel.setValue("Galaxy is not connected <font size=\"3\" color=\"red\"> &#128528;</font>");
+            galaxyLinkContainer.setEnabled(!galaxyConnected);
+            inputTabSheet.setEnabled(!galaxyConnected);
+            this.setClosable(false);
+            return;
+
+        } else {
+            galaxyConnected = connectToGalaxy();
+            if (galaxyConnected) {
+                connectionLabel.setValue("Galaxy is connected <font size=\"3\" color=\"green\"> &#128522;</font>");
+                connectBtn.setCaption("Disconnect");
+
+            }
+            galaxyLinkContainer.setEnabled(!galaxyConnected);
+            inputTabSheet.setEnabled(!galaxyConnected);
+        }
+
+        this.connectedToGalaxy(galaxyInstance);
+    
     }
 
 }

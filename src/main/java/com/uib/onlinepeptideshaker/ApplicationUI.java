@@ -6,28 +6,13 @@ import javax.servlet.annotation.WebServlet;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
-import com.vaadin.event.ContextClickEvent;
-import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServlet;
-import com.vaadin.server.VaadinServletRequest;
-import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
 
 /**
@@ -64,17 +49,6 @@ public class ApplicationUI extends UI {
             }
         });
         mimicNelsLogin();
-    }
-//
-
-    @Override
-    public void detach() {
-        super.detach(); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void close() {
-        super.close(); //To change body of generated methods, choose Tools | Templates.
     }
 
     @WebServlet(urlPatterns = "/*", name = "ApplicationUIServlet", asyncSupported = true)

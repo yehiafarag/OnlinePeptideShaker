@@ -16,6 +16,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 /**
  * This class represents main GUI container for galaxy web interface (login) and
@@ -23,28 +24,12 @@ import com.vaadin.ui.VerticalLayout;
  *
  * @author Yehia Farag
  */
-public class MainApplicationGUI extends VerticalLayout {
+public class MainApplicationGUI extends HorizontalLayout {
 
     /**
      * The main view controller (VIEW MANAGER).
      */
     private VisualizationManager VISUALIZATION_MANAGER;
-    /**
-     * The header layout container.
-     */
-    private final HorizontalLayout headerPanelLayout;
-    /**
-     * The body layout panel.
-     */
-    private final VerticalLayout bodyPanel;
-    /**
-     * The header layout panel.
-     */
-    private final VerticalLayout headerPanel;
-    /**
-     * The galaxy server connection panel.
-     */
-    private final GalaxyConnectionPanel galaxyInputPanel;
     /**
      * The galaxy server logic layer.
      */
@@ -68,198 +53,181 @@ public class MainApplicationGUI extends VerticalLayout {
     public MainApplicationGUI(Refresher REFRESHER) {
         MainApplicationGUI.this.setSizeFull();
         MainApplicationGUI.this.setSpacing(true);
-        MainApplicationGUI.this.setMargin(new MarginInfo(false, true, true, true));
-
-        headerPanel = new VerticalLayout();
-        headerPanel.setHeight(50, Unit.PIXELS);
-        MainApplicationGUI.this.addComponent(headerPanel);
-        MainApplicationGUI.this.setComponentAlignment(headerPanel, Alignment.MIDDLE_LEFT);
-        MainApplicationGUI.this.setExpandRatio(headerPanel, 10);
-        headerPanelLayout = initializeHeaderPanel();
-        headerPanel.addComponent(headerPanelLayout);
-        headerPanel.setMargin(new MarginInfo(false, false, false, false));
-
-        bodyPanel = new VerticalLayout();
-        bodyPanel.setSizeFull();
-        galaxyInputPanel = new GalaxyConnectionPanel() {
+        MainApplicationGUI.this.setMargin(new MarginInfo(false, false, true, true));
+        
+        AbsoluteLayout mainViewContainer = new AbsoluteLayout();
+        mainViewContainer.setSizeFull();
+        MainApplicationGUI.this.addComponent(mainViewContainer);
+        MainApplicationGUI.this.setExpandRatio(mainViewContainer, 95);
+        
+        AbsoluteLayout rightLayoutContainer = new AbsoluteLayout();
+        rightLayoutContainer.setSizeFull();
+        rightLayoutContainer.setVisible(false);
+        rightLayoutContainer.setStyleName("rightbtnscontainer");
+        MainApplicationGUI.this.addComponent(rightLayoutContainer);
+        MainApplicationGUI.this.setExpandRatio(rightLayoutContainer, 5);  
+        
+        VerticalLayout marker = new VerticalLayout();
+        marker.setWidth(2,Unit.PIXELS);
+        marker.setHeight(100,Unit.PERCENTAGE); 
+        marker.setStyleName("lightgraylayout");
+        rightLayoutContainer.addComponent(marker, "left: 50%; top: 50px;");
+        
+        
+        VerticalLayout rightControlBtnsContainer = new VerticalLayout();
+        rightControlBtnsContainer.setSizeFull();
+        rightControlBtnsContainer.setStyleName("rightbtnscontainer");
+        rightLayoutContainer.addComponent(rightControlBtnsContainer);
+        
+        VISUALIZATION_MANAGER = new VisualizationManager(rightControlBtnsContainer, mainViewContainer);
+//        
+//
+        WelcomePage landedPage = new WelcomePage() {
             @Override
-            public void connectedToGalaxy(GalaxyInstance galaxyInstant) {
-                systemConnected(galaxyInstant);
+            public void systemConnected(GalaxyInstance galaxyInstant) {
+                rightLayoutContainer.setVisible(true);
+//                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
-
         };
-
-        MainApplicationGUI.this.addComponent(bodyPanel);
-        MainApplicationGUI.this.setComponentAlignment(bodyPanel, Alignment.TOP_CENTER);
-        MainApplicationGUI.this.setExpandRatio(bodyPanel, 70);
-        MainApplicationGUI.this.setStyleName("minheight275");
-        MainApplicationGUI.this.addStyleName("minwidth435");
-
+        VISUALIZATION_MANAGER.registerView(landedPage);
+        VISUALIZATION_MANAGER.viewLayout(landedPage.getViewId());
+//       
+//
         this.LOGIC_LAYER = new LogicLayer(REFRESHER) {
             @Override
             public void updateHistoryPresenter(OnlinePeptideShakerHistory systemHistory) {
                 if (historyManagmentPresenter != null) {
                     historyManagmentPresenter.updateHistoryPanels(systemHistory);
-                }else
+                } else {
                     System.out.println("null hmpresenter");
+                }
                 if (webGalaxyTools != null) {
                     webGalaxyTools.updateForm();
                 }
             }
-
+            
         };
 
-
+//        initalizeBodyPanel();
     }
 
     /**
-     * Initialize the header layout.
-     */
-    private HorizontalLayout initializeHeaderPanel() {
-        HorizontalLayout headerLayoutContainer = new HorizontalLayout();
-        headerLayoutContainer.setSpacing(true);
-        Image peptideShakerLogoIcon = new Image();
-        peptideShakerLogoIcon.setSource(new ThemeResource("favicon.ico"));
-        peptideShakerLogoIcon.setHeight(40, Unit.PIXELS);
-        peptideShakerLogoIcon.setStyleName("galaxyicon");
-        headerLayoutContainer.addComponent(peptideShakerLogoIcon);
-        headerLayoutContainer.setComponentAlignment(peptideShakerLogoIcon, Alignment.MIDDLE_LEFT);
-
-        Link headerLogoLabel = new Link("PeptideShaker <font>(Online Version)</font>", new ExternalResource(""));
-        headerLayoutContainer.addComponent(headerLogoLabel);
-        headerLogoLabel.setCaptionAsHtml(true);
-        headerLayoutContainer.setComponentAlignment(headerLogoLabel, Alignment.MIDDLE_LEFT);
-        headerLogoLabel.setStyleName("headerlogo");
-
-        return headerLayoutContainer;
-    }
-
-    /**
-     * Initialize the main body panel that has all tools and history contents
+     * Initialize the main body panel that has all tools and history contents.
      */
     private HorizontalLayout initalizeBodyPanel() {
         HorizontalLayout bodyPanelLayout = new HorizontalLayout();
         bodyPanelLayout.setSpacing(false);
         bodyPanelLayout.setSizeFull();
-
+        
         ToolsSectionContainer toolsControlSection = new ToolsSectionContainer();
         bodyPanelLayout.addComponent(toolsControlSection);
         bodyPanelLayout.setExpandRatio(toolsControlSection, 10);
-
+        
         HorizontalLayout toolViewHistoryContainer = new HorizontalLayout();
         toolViewHistoryContainer.setSizeFull();
         toolViewHistoryContainer.setStyleName("mainviewframe");
-        bodyPanelLayout.addComponent(toolViewHistoryContainer);
-        bodyPanelLayout.setExpandRatio(toolViewHistoryContainer, 87);
+        toolViewHistoryContainer.addStyleName("hide");
+//        bodyPanelLayout.addComponent(toolViewHistoryContainer);
+//        bodyPanelLayout.setExpandRatio(toolViewHistoryContainer, 87);
         toolViewHistoryContainer.setSpacing(true);
+        
+        VerticalLayout rightSidePanel = new VerticalLayout();
+        rightSidePanel.setWidth(100, Unit.PERCENTAGE);
+        rightSidePanel.setHeight(100, Unit.PERCENTAGE);
+        rightSidePanel.setStyleName("historyframe");
+//        bodyPanelLayout.addComponent(rightSidePanel);
+//        bodyPanelLayout.setExpandRatio(rightSidePanel, 3);
 
-        VerticalLayout historySection = new VerticalLayout();
-        historySection.setWidth(100, Unit.PERCENTAGE);
-        historySection.setHeight(100, Unit.PERCENTAGE);
-        historySection.setStyleName("historyframe");
-        bodyPanelLayout.addComponent(historySection);
-        bodyPanelLayout.setExpandRatio(historySection, 3);
-
-        AbsoluteLayout mainViewSection = new AbsoluteLayout();
-        mainViewSection.setWidth(100, Unit.PERCENTAGE);
-        mainViewSection.setHeight(100, Unit.PERCENTAGE);
-        mainViewSection.setStyleName("slowmove");
-        toolViewHistoryContainer.addComponent(mainViewSection);
-        toolViewHistoryContainer.setExpandRatio(mainViewSection, 0.7f);
-
-        historyManagmentPresenter = new HistoryManagmentPresenter() {
-            @Override
-            public void updateSelectedHistory(String historyId) {
-//                LOGIC_LAYER.updateSelectedHistory(historyId);
-//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
-            }
-
-            @Override
-            public void createNewHistory(String historyName) {
-//                LOGIC_LAYER.createNewHistory(historyName);
-//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
-            }
-
-            @Override
-            public void deleteHistoryDataset(String historyId, String historyDatasetId) {
-//                LOGIC_LAYER.deleteGalaxyHistoryDataseyt(historyDatasetId, historyDatasetId);
-//                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
-
-            }
-
-            @Override
-            public void viewPeptideshakerResults(PeptideShakerViewBean results) {
-                VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
-                webVisualization.updateProteinTable(results);
-                
-
-            }
-
-        };
-        toolViewHistoryContainer.addComponent(historyManagmentPresenter.getMainHistoryPanel());
-        toolViewHistoryContainer.setComponentAlignment(historyManagmentPresenter.getMainHistoryPanel(), Alignment.BOTTOM_RIGHT);
-        toolViewHistoryContainer.setExpandRatio(historyManagmentPresenter.getMainHistoryPanel(), 0.3f);
-
-        VISUALIZATION_MANAGER = new VisualizationManager(toolsControlSection, mainViewSection, historyManagmentPresenter);
-
-        VerticalLayout topRightLayoutContainer = new VerticalLayout();
-        topRightLayoutContainer.setSizeFull();
-        topRightLayoutContainer.setSpacing(true);
-        topRightLayoutContainer.setStyleName("toprightframe");
-        historySection.addComponent(topRightLayoutContainer);
-
-        VerticalLayout topBtnContainer = new VerticalLayout();
-        topRightLayoutContainer.addComponent(topBtnContainer);
-        topBtnContainer.setSizeFull();
-        topBtnContainer.setSpacing(true);
-        topBtnContainer.addStyleName("maxheight80");
-        VerticalLayout homeLayoutBtn = new VerticalLayout();
-        homeLayoutBtn.setSizeFull();
-        homeLayoutBtn.setStyleName("homestyle");
-        topBtnContainer.addComponent(homeLayoutBtn);
-
-        VerticalLayout galaxyControlPanelBtn = new VerticalLayout();
-        galaxyControlPanelBtn.setSizeFull();
-        galaxyControlPanelBtn.setStyleName("galaxybtnstyle");
-        galaxyControlPanelBtn.addComponent(galaxyInputPanel.getMinimizeComponent());
-        galaxyControlPanelBtn.addLayoutClickListener(galaxyInputPanel);
-
-        topBtnContainer.addComponent(galaxyControlPanelBtn);
-
-        VerticalLayout bottomRightLayoutContainer = new VerticalLayout();
-        bottomRightLayoutContainer.setSizeFull();
-        bottomRightLayoutContainer.setStyleName("bottomrightframe");
-        historySection.addComponent(bottomRightLayoutContainer);
-
-        UploadDataWebToolPresenter uploadToGalaxyTool = new UploadDataWebToolPresenter();
-        VISUALIZATION_MANAGER.registerView(uploadToGalaxyTool);
-
-        bottomRightLayoutContainer.addComponent(historyManagmentPresenter);
-
-        webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
-        VISUALIZATION_MANAGER.registerView(webGalaxyTools);
-       
-
-        webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
-        VISUALIZATION_MANAGER.registerView(webVisualization); 
-        VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
+//        AbsoluteLayout mainViewSection = new AbsoluteLayout();
+//        mainViewSection.setWidth(100, Unit.PERCENTAGE);
+//        mainViewSection.setHeight(100, Unit.PERCENTAGE);
+//        mainViewSection.setStyleName("slowmove");
+//        toolViewHistoryContainer.addComponent(mainViewSection);
+//        toolViewHistoryContainer.setExpandRatio(mainViewSection, 0.7f);
+//
+//        historyManagmentPresenter = new HistoryManagmentPresenter() {
+//            @Override
+//            public void updateSelectedHistory(String historyId) {
+////                LOGIC_LAYER.updateSelectedHistory(historyId);
+////                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//            }
+//
+//            @Override
+//            public void createNewHistory(String historyName) {
+////                LOGIC_LAYER.createNewHistory(historyName);
+////                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//            }
+//
+//            @Override
+//            public void deleteHistoryDataset(String historyId, String historyDatasetId) {
+////                LOGIC_LAYER.deleteGalaxyHistoryDataseyt(historyDatasetId, historyDatasetId);
+////                this.updateHistoryPanels(LOGIC_LAYER.getCurrentGalaxyHistory());
+//
+//            }
+//
+//            @Override
+//            public void viewPeptideshakerResults(PeptideShakerViewBean results) {
+//                VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
+//                webVisualization.updateProteinTable(results);
+//                
+//
+//            }
+//
+//        };
+//        toolViewHistoryContainer.addComponent(historyManagmentPresenter.getMainHistoryPanel());
+//        toolViewHistoryContainer.setComponentAlignment(historyManagmentPresenter.getMainHistoryPanel(), Alignment.BOTTOM_RIGHT);
+//        toolViewHistoryContainer.setExpandRatio(historyManagmentPresenter.getMainHistoryPanel(), 0.3f);
+//
+//        VerticalLayout topRightLayoutContainer = new VerticalLayout();
+//        topRightLayoutContainer.setSizeFull();
+//        topRightLayoutContainer.setSpacing(true);
+//        topRightLayoutContainer.setStyleName("toprightframe");
+//        rightSidePanel.addComponent(topRightLayoutContainer);
+//
+//        VerticalLayout topBtnContainer = new VerticalLayout();
+//        topRightLayoutContainer.addComponent(topBtnContainer);
+//        topBtnContainer.setSizeFull();
+//        topBtnContainer.setSpacing(true);
+//        topBtnContainer.addStyleName("maxheight80");
+//        VerticalLayout homeLayoutBtn = new VerticalLayout();
+//        homeLayoutBtn.setSizeFull();
+//        homeLayoutBtn.setStyleName("homestyle");
+//        topBtnContainer.addComponent(homeLayoutBtn);
+//
+//        VerticalLayout galaxyControlPanelBtn = new VerticalLayout();
+//        galaxyControlPanelBtn.setSizeFull();
+//        galaxyControlPanelBtn.setStyleName("galaxybtnstyle");
+//        galaxyControlPanelBtn.addComponent(galaxyInputPanel.getControlButton());
+//        galaxyControlPanelBtn.addLayoutClickListener(galaxyInputPanel);
+//
+//        topBtnContainer.addComponent(galaxyControlPanelBtn);
+//
+//        VerticalLayout bottomRightLayoutContainer = new VerticalLayout();
+//        bottomRightLayoutContainer.setSizeFull();
+//        bottomRightLayoutContainer.setStyleName("bottomrightframe");
+//        rightSidePanel.addComponent(bottomRightLayoutContainer);
+//
+//        UploadDataWebToolPresenter uploadToGalaxyTool = new UploadDataWebToolPresenter();
+//        VISUALIZATION_MANAGER.registerView(uploadToGalaxyTool);
+//
+//        bottomRightLayoutContainer.addComponent(historyManagmentPresenter);
+//
+//        webGalaxyTools = new WebToolsPresenter(LOGIC_LAYER);
+//        VISUALIZATION_MANAGER.registerView(webGalaxyTools);
+//       
+//
+//        webVisualization = new WebVisualizationPresenter(LOGIC_LAYER);
+//        VISUALIZATION_MANAGER.registerView(webVisualization); 
+//        VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
         return bodyPanelLayout;
-
-    }
-
-    private void systemConnected(GalaxyInstance galaxyInstant) {
-        galaxyInputPanel.minimizeView();
-        headerPanel.setVisible(false);
-        bodyPanel.addStyleName("margintop10");
-        headerPanelLayout.setHeight(40, Unit.PIXELS);
-        LOGIC_LAYER.connectToGalaxyServer(galaxyInstant);
-        bodyPanel.removeAllComponents();
-        bodyPanel.addComponent(initalizeBodyPanel());
-        LOGIC_LAYER.loadGalaxyHistory(null);
-//        historyManagmentPresenter.updateHistoryPanels(LOGIC_LAYER.g());
-
+        
     }
     
- 
-
+    private void systemConnected(GalaxyInstance galaxyInstant) {
+//       bodyPanel.addComponent(initalizeBodyPanel());
+        LOGIC_LAYER.connectToGalaxyServer(galaxyInstant);
+        LOGIC_LAYER.loadGalaxyHistory(null);
+        
+    }
+    
 }

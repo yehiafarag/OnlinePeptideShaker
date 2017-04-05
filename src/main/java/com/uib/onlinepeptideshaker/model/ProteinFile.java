@@ -22,8 +22,6 @@ public class ProteinFile extends LocalIndexFile {
         super(localFileId, folderURL, fileURL, cookiesRequestProperty);
     }
 
-   
-
     /**
      * Read the full file at once
      *
@@ -32,17 +30,17 @@ public class ProteinFile extends LocalIndexFile {
     public Set<Object[]> readFullData() {
 
         Set<Object[]> proteisnSet = new LinkedHashSet<>();
-        BufferedRandomAccessFile bufferedRandomAccessFile=null;
+        BufferedRandomAccessFile bufferedRandomAccessFile = null;
         try {//           
             bufferedRandomAccessFile = new BufferedRandomAccessFile(super.getLocalFile(), "r", 1024 * 100);
             String line;
             /**
              * escape header
              */
-            bufferedRandomAccessFile.getNextLine();
+            System.out.println("at line " + bufferedRandomAccessFile.getNextLine());
             while ((line = bufferedRandomAccessFile.getNextLine()) != null) {
-                String[] arr = line.split("\\t");
-                Object[] obj = new Object[]{arr[0], arr[1], arr[2], arr[3], arr[5], arr[6], arr[17]};
+                String[] arr = line.split("\\t");      
+                Object[] obj = new Object[]{Integer.valueOf(arr[0]), arr[1], arr[2], arr[3], arr[5], arr[6], Integer.valueOf(arr[17])};
                 proteisnSet.add(obj);
             }
             bufferedRandomAccessFile.close();
@@ -50,8 +48,7 @@ public class ProteinFile extends LocalIndexFile {
             ex.printStackTrace();
             if (bufferedRandomAccessFile != null) {
                 try {
-                    bufferedRandomAccessFile.close(
-                    );
+                    bufferedRandomAccessFile.close();
                 } catch (IOException ex1) {
                     Logger.getLogger(ProteinFile.class.getName()).log(Level.SEVERE, null, ex1);
                 }

@@ -170,13 +170,13 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         this.proteinsTable.setImmediate(true);
         this.proteinsTable.setMultiSelect(false);
 
-        this.proteinsTable.addContainerProperty("Index", String.class, null, "", null, Table.Align.RIGHT);
+        this.proteinsTable.addContainerProperty("Index", Integer.class, null, "", null, Table.Align.RIGHT);
         this.proteinsTable.addContainerProperty("Accession", String.class, null, "Accession", null, Table.Align.CENTER);
         this.proteinsTable.addContainerProperty("Name", String.class, null, "Name", null, Table.Align.LEFT);
         this.proteinsTable.addContainerProperty("geneName", String.class, null, "Gene Name", null, Table.Align.CENTER);
         this.proteinsTable.addContainerProperty("mwkDa", String.class, null, "MW (kDa)", null, Table.Align.RIGHT);
         this.proteinsTable.addContainerProperty("possibleCoverage", String.class, null, "Possible Coverage", null, Table.Align.RIGHT);
-        this.proteinsTable.addContainerProperty("peptides_number", String.class, null, "#Peptides", null, Table.Align.RIGHT);
+        this.proteinsTable.addContainerProperty("peptides_number", Integer.class, null, "#Peptides", null, Table.Align.RIGHT);
 
     }
 
@@ -327,7 +327,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
     }
 
     @Override
-    public AbsoluteLayout getMinimizeComponent() {
+    public AbsoluteLayout getControlButton() {
         return sideButton;
     }
 
@@ -429,7 +429,7 @@ public class WebVisualizationPresenter implements RegistrableView, LayoutEvents.
         }
         this.peptidesTable.markAsDirty();
         this.peptidesTable.addValueChangeListener(peptideTableListener);
-        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
+//        this.peptidesTable.select(peptidesTable.getItemIds().iterator().next());
     }
 
 }

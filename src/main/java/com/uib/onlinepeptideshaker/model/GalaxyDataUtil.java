@@ -11,7 +11,11 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -112,11 +116,11 @@ public class GalaxyDataUtil {
          */
         this.proteinFile = new ProteinFile(results.getId() + "_Protein.tem", userFolderURL, results.getProteinFileURL(), cookiesRequestProperty);
         //download peptide index file
-        this.peptideIndexes = getPeptidesIndexMapByteServingServer();
+        this.peptideIndexes = getPeptidesIndexMapByteServingServer(GALAXY_INSTANCE.getHistoriesClient().showDataset(systemHistory.getCurrent_galaxy_history(), results.getPeptideFileId()).getFullDownloadUrl());
         //init peptide file
         this.peptideFile = new PeptideFile(GALAXY_INSTANCE.getGalaxyUrl(), results.getPeptideFileId(), cookiesRequestProperty);
         //download psm file index
-        this.psmIndexes = getPsmIndexMap();
+        this.psmIndexes = getPsmIndexMap(GALAXY_INSTANCE.getHistoriesClient().showDataset(systemHistory.getCurrent_galaxy_history(), results.getPSMFileId()).getFullDownloadUrl());
         //init psm file
         this.psmFile = new ReadableFile(GALAXY_INSTANCE.getGalaxyUrl(), results.getPSMFileId(), cookiesRequestProperty) {
             @Override
@@ -165,12 +169,17 @@ public class GalaxyDataUtil {
      *
      * @return index map of peptides
      */
-    private LinkedHashMap<String, IndexPoint> getPeptidesIndexMapByteServingServer() {
+    private LinkedHashMap<String, IndexPoint> getPeptidesIndexMapByteServingServer(String peptideFileUrl) {
         String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-        File fileToRead = new File(basepath + "/VAADIN/Galaxy7-[Peptide_Shaker_on_data_6__Peptide_Report].tabular");
-        LinkedHashMap<String, IndexPoint> indexes = new LinkedHashMap<>();
+         LinkedHashMap<String, IndexPoint> indexes = new LinkedHashMap<>();
+         try {
+               File fileToRead = new File(userFolderURL, "peptide.txt");
+            URL website = new URL(peptideFileUrl);
+            ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+            FileOutputStream fos = new FileOutputStream(fileToRead);
+            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
         BufferedRandomAccessFile bufferedRandomAccessFile;
-        try {
+      
             bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
             long currentIndex = 0;
             String title;
@@ -198,12 +207,18 @@ public class GalaxyDataUtil {
      *
      * @return index map of psms
      */
-    private LinkedHashMap<String, IndexPoint> getPsmIndexMap() {
-        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-        File fileToRead = new File(basepath + "/VAADIN/Galaxy86-[Peptide_Shaker_on_data_81__PSM_Report].tabular");
+    private LinkedHashMap<String, IndexPoint> getPsmIndexMap(String psmUrl) {
+//        String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
         LinkedHashMap<String, IndexPoint> indexes = new LinkedHashMap<>();
-        BufferedRandomAccessFile bufferedRandomAccessFile;
         try {
+            File fileToRead = new File(userFolderURL, "psm.txt");
+            URL website = new URL(psmUrl);
+            ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+            FileOutputStream fos = new FileOutputStream(fileToRead);
+            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+
+            BufferedRandomAccessFile bufferedRandomAccessFile;
+
             bufferedRandomAccessFile = new BufferedRandomAccessFile(fileToRead, "r", 1024 * 100);
 
             long currentIndex = 0;

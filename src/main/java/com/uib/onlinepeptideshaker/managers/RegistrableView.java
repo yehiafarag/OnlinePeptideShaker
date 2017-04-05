@@ -33,7 +33,7 @@ public interface RegistrableView  {
     /**
      * Get minimized layout (icon represents the layout).
      */
-    public abstract AbsoluteLayout getMinimizeComponent();
+    public abstract AbsoluteLayout getControlButton();
      /**
      * Get maximized layout (container of main view layout).
      */
