@@ -746,19 +746,30 @@
 	background-color: green !important;
 	border-color:green;
 }
+.v-slot-rightbtnscontainer {
+	margin-top: 50px;
+	
+}
 .rightbtnscontainer {
-	margin-top:50px;
 	min-width: 16px;
 	max-width: 64px;
-        max-height:252px;
+        max-height:280px;
+        -webkit-transition: all 1.5s ease-in-out;
+	-moz-transition: all 1.5s ease-in-out;
+	-o-transition: all 1.5s ease-in-out;
+	transition: all 1.5s ease-in-out;
 }
 .smallmenubtn {
 	background-color: whitesmoke;
 	border: 1px solid lightgray;
 	border-radius: 50px;
-	max-width: 32px;
-	max-height: 32px;
+	max-width: 40px;
+	max-height: 40px;
 	cursor:pointer;
+          -webkit-transition: all .5s ease-in-out;
+	-moz-transition: all .5s ease-in-out;
+	-o-transition: all .5s ease-in-out;
+	transition: all .5s ease-in-out;
 }
 .smallmenubtn:hover {
 	background-color: lightgray;
@@ -775,5 +786,12 @@
 }
 .lightgraylayout{
     background-color: lightgray;
+}
+.slowinvisible{
+    	-webkit-transition: all 1.5s ease-in-out;
+	-moz-transition: all 1.5s ease-in-out;
+	-o-transition: all 1.5s ease-in-out;
+	transition: all 1.5s ease-in-out;
+	opacity:0;
 }
 }

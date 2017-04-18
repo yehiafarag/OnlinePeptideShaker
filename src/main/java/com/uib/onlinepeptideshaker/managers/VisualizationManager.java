@@ -3,6 +3,7 @@ package com.uib.onlinepeptideshaker.managers;
 import com.uib.onlinepeptideshaker.presenter.HistoryManagmentPresenter;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.ui.AbsoluteLayout;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.VerticalLayout;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class VisualizationManager implements LayoutEvents.LayoutClickListener {
         view.getControlButton().addLayoutClickListener(VisualizationManager.this);
         visualizationMap.put(view.getViewId(), view);
         sideButtonContainer.addComponent(view.getControlButton());
+         sideButtonContainer.setComponentAlignment(view.getControlButton(),Alignment.TOP_CENTER);
         mainToolViewContainer.addComponent(view.getMainViewComponent());
     }
 

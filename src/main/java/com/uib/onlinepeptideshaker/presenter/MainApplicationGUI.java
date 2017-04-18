@@ -54,43 +54,55 @@ public class MainApplicationGUI extends HorizontalLayout {
         MainApplicationGUI.this.setSizeFull();
         MainApplicationGUI.this.setSpacing(true);
         MainApplicationGUI.this.setMargin(new MarginInfo(false, false, true, true));
-        
+
         AbsoluteLayout mainViewContainer = new AbsoluteLayout();
         mainViewContainer.setSizeFull();
         MainApplicationGUI.this.addComponent(mainViewContainer);
         MainApplicationGUI.this.setExpandRatio(mainViewContainer, 95);
-        
+
         AbsoluteLayout rightLayoutContainer = new AbsoluteLayout();
         rightLayoutContainer.setSizeFull();
-        rightLayoutContainer.setVisible(false);
+        rightLayoutContainer.setVisible(true);
         rightLayoutContainer.setStyleName("rightbtnscontainer");
         MainApplicationGUI.this.addComponent(rightLayoutContainer);
-        MainApplicationGUI.this.setExpandRatio(rightLayoutContainer, 5);  
-        
+        MainApplicationGUI.this.setExpandRatio(rightLayoutContainer, 5);
+
         VerticalLayout marker = new VerticalLayout();
-        marker.setWidth(2,Unit.PIXELS);
-        marker.setHeight(100,Unit.PERCENTAGE); 
+        marker.setWidth(2, Unit.PIXELS);
+        marker.setHeight(80, Unit.PERCENTAGE);
         marker.setStyleName("lightgraylayout");
-        rightLayoutContainer.addComponent(marker, "left: 50%; top: 50px;");
-        
-        
-        VerticalLayout rightControlBtnsContainer = new VerticalLayout();
+        rightLayoutContainer.addComponent(marker, "left: 50%; top: 16px;");
+
+        VerticalLayout rightControlBtnsContainer = new VerticalLayout() {
+            @Override
+            public void setEnabled(boolean enabled) {
+                if (enabled) {
+                    this.removeStyleName("slowinvisible");
+                } else {
+                    this.addStyleName("slowinvisible");
+                }
+            }
+
+        };
         rightControlBtnsContainer.setSizeFull();
         rightControlBtnsContainer.setStyleName("rightbtnscontainer");
+        rightControlBtnsContainer.setEnabled(false);
         rightLayoutContainer.addComponent(rightControlBtnsContainer);
-        
+
         VISUALIZATION_MANAGER = new VisualizationManager(rightControlBtnsContainer, mainViewContainer);
-//        
-//
         WelcomePage landedPage = new WelcomePage() {
             @Override
             public void systemConnected(GalaxyInstance galaxyInstant) {
-                rightLayoutContainer.setVisible(true);
-//                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                if (galaxyInstant != null) {
+                    rightControlBtnsContainer.setEnabled(true);
+                    MainApplicationGUI.this.systemConnected(galaxyInstant);
+                } else {
+                    rightControlBtnsContainer.setEnabled(false);
+                }
             }
         };
         VISUALIZATION_MANAGER.registerView(landedPage);
-        VISUALIZATION_MANAGER.viewLayout(landedPage.getViewId());
+
 //       
 //
         this.LOGIC_LAYER = new LogicLayer(REFRESHER) {
@@ -105,8 +117,20 @@ public class MainApplicationGUI extends HorizontalLayout {
                     webGalaxyTools.updateForm();
                 }
             }
-            
+
         };
+
+        WebToolsPresenter toolPresenter = new WebToolsPresenter(LOGIC_LAYER);
+        VISUALIZATION_MANAGER.registerView(toolPresenter);
+        VISUALIZATION_MANAGER.viewLayout(landedPage.getViewId());
+        
+        
+            WebToolsPresenter test = new WebToolsPresenter(LOGIC_LAYER);
+        VISUALIZATION_MANAGER.registerView(test);
+        VISUALIZATION_MANAGER.viewLayout(landedPage.getViewId());
+        
+        
+        
 
 //        initalizeBodyPanel();
     }
@@ -118,11 +142,11 @@ public class MainApplicationGUI extends HorizontalLayout {
         HorizontalLayout bodyPanelLayout = new HorizontalLayout();
         bodyPanelLayout.setSpacing(false);
         bodyPanelLayout.setSizeFull();
-        
+
         ToolsSectionContainer toolsControlSection = new ToolsSectionContainer();
         bodyPanelLayout.addComponent(toolsControlSection);
         bodyPanelLayout.setExpandRatio(toolsControlSection, 10);
-        
+
         HorizontalLayout toolViewHistoryContainer = new HorizontalLayout();
         toolViewHistoryContainer.setSizeFull();
         toolViewHistoryContainer.setStyleName("mainviewframe");
@@ -130,7 +154,7 @@ public class MainApplicationGUI extends HorizontalLayout {
 //        bodyPanelLayout.addComponent(toolViewHistoryContainer);
 //        bodyPanelLayout.setExpandRatio(toolViewHistoryContainer, 87);
         toolViewHistoryContainer.setSpacing(true);
-        
+
         VerticalLayout rightSidePanel = new VerticalLayout();
         rightSidePanel.setWidth(100, Unit.PERCENTAGE);
         rightSidePanel.setHeight(100, Unit.PERCENTAGE);
@@ -220,14 +244,14 @@ public class MainApplicationGUI extends HorizontalLayout {
 //        VISUALIZATION_MANAGER.registerView(webVisualization); 
 //        VISUALIZATION_MANAGER.viewLayout(webVisualization.getViewId());
         return bodyPanelLayout;
-        
+
     }
-    
+
     private void systemConnected(GalaxyInstance galaxyInstant) {
 //       bodyPanel.addComponent(initalizeBodyPanel());
         LOGIC_LAYER.connectToGalaxyServer(galaxyInstant);
         LOGIC_LAYER.loadGalaxyHistory(null);
-        
+
     }
-    
+
 }

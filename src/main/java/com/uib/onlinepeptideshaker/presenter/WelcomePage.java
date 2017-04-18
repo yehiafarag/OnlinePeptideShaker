@@ -127,10 +127,6 @@ public abstract class WelcomePage extends VerticalLayout implements RegistrableV
             @Override
             public void connectedToGalaxy(GalaxyInstance galaxyInstant) {
                 galaxyInputPanel.minimizeView();
-//                headerPanel.setVisible(false);
-//                bodyPanel.addStyleName("margintop10");
-//                headerPanelLayout.setHeight(40, Unit.PIXELS);
-//                bodyPanel.removeAllComponents();
                 connectionLabel.setValue("Disconnect");
                 connectionLabel.addStyleName("disconnect");
                 connectionStatuesLabel.setValue("Galaxy is <font color='green'>connected </font><font size='3' color='green'> &#128522;</font>");
@@ -151,6 +147,7 @@ public abstract class WelcomePage extends VerticalLayout implements RegistrableV
                     connectionLabel.setValue("Connect");
                     connectionLabel.removeStyleName("disconnect");
                     connectionStatuesLabel.setValue("Galaxy is<font color='red'>  not connected </font><font size='3' color='red'> &#128528;</font>");
+                    systemConnected(null);
                     
                 } else {
                     //connect to galaxy

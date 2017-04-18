@@ -5,6 +5,7 @@ import com.uib.onlinepeptideshaker.model.LogicLayer;
 import com.uib.onlinepeptideshaker.model.beans.WebTool;
 import com.uib.onlinepeptideshaker.presenter.view.PeptideShakerInputForm;
 import com.uib.onlinepeptideshaker.presenter.view.SearchGuiInputForm;
+import com.uib.onlinepeptideshaker.presenter.view.SmallSideBtn;
 import com.uib.onlinepeptideshaker.presenter.view.WorkFlowForm;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.server.Sizeable.Unit;
@@ -37,11 +38,11 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
     /**
      * Side button container.
      */
-    private final AbsoluteLayout sideButton;
+    private SmallSideBtn  sideButton;
     /**
      * Side button extender.
      */
-    private final VerticalLayout extender;
+//    private final VerticalLayout extender;
     /**
      * SearchGUI web tool.
      */
@@ -103,23 +104,24 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
 
         this.mainViewPanel = new VerticalLayout();
         initializeMainViewPanel();
-        this.sideButton = new AbsoluteLayout();
-        this.sideButton.setSizeFull();
-        this.sideButton.setStyleName("frame");
-        this.sideButton.addStyleName("sidebutton");
+        this.sideButton = new SmallSideBtn("img/spectra.png");
+//        this.sideButton.setSizeFull();
+//        this.sideButton.setStyleName("frame");
+//        this.sideButton.addStyleName("sidebutton");
 
-        extender = new VerticalLayout();
-        this.sideButton.addComponent(extender);
-        extender.setSizeFull();
-        extender.addStyleName("sidebuttonframe");
-        Image icon = new Image();
-        icon.setSource(new ThemeResource("img/peptideshaker.png"));
-        icon.setWidth(100, Unit.PERCENTAGE);
-        extender.addComponent(icon);
-        extender.setComponentAlignment(icon, Alignment.MIDDLE_CENTER);
-        extender.setExpandRatio(icon, 8);
+//        extender = new VerticalLayout();
+//        this.sideButton.addComponent(extender);
+//        extender.setSizeFull();
+//        extender.addStyleName("sidebuttonframe");
+//        Image icon = new Image();
+//        icon.setSource(new ThemeResource("img/peptideshaker.png"));
+//        icon.setWidth(100, Unit.PERCENTAGE);
+//        extender.addComponent(icon);
+//        extender.setComponentAlignment(icon, Alignment.MIDDLE_CENTER);
+//        extender.setExpandRatio(icon, 8);
         this.sideButton.setData(WebToolsPresenter.this.getViewId());
-        icon.setData(WebToolsPresenter.this.getViewId());
+//        icon.setData(WebToolsPresenter.this.getViewId());
+        this.minimizeView();
 
     }
 
@@ -232,6 +234,8 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
         inputPanel.addComponent(peptideShakerInpuPanel);
         peptideShakerInpuPanel.setVisible(false);
         
+        
+        
 
     }
 
@@ -243,13 +247,13 @@ public class WebToolsPresenter implements RegistrableView, LayoutEvents.LayoutCl
     @Override
     public void minimizeView() {
         mainViewPanel.addStyleName("hidepanel");
-        sideButton.removeStyleName("mergewithmainview");
+         sideButton.setSelected(false);
     }
 
     @Override
     public void maximizeView() {
         mainViewPanel.removeStyleName("hidepanel");
-        sideButton.addStyleName("mergewithmainview");
+        sideButton.setSelected(true);
     }
 
     @Override

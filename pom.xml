@@ -39,6 +39,12 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>genesis-maven2-repository</id>
+            <name>Genesis maven2 repository</name>
+            <url>http://genesis.UGent.be/maven2</url>
+            <layout>default</layout>
+        </repository>
       
         <!-- old EBI repository -->
         <repository>
@@ -127,15 +133,26 @@
 
       
         <dependency>
+            <groupId>com.compomics</groupId>
+            <artifactId>utilities</artifactId>
+            <version>4.11.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>com.springsource.org.apache.commons.io</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.dspace.dependencies</groupId>
             <artifactId>dspace-perst</artifactId>
             <version>4.21</version>
         </dependency>
-        <dependency>
-            <groupId>loci</groupId>
-            <artifactId>loci-common</artifactId>
-            <version>5.0.0-beta1</version>
-        </dependency>
+       
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
