@@ -34,18 +34,12 @@
         </repository>
         <repository>
             <id>central</id>
-            <url>	http://central.maven.org/maven2/</url>
+            <url>http://central.maven.org/maven2/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
         </repository>
-        <repository>
-            <id>genesis-maven2-repository</id>
-            <name>Genesis maven2 repository</name>
-            <url>http://genesis.UGent.be/maven2</url>
-            <layout>default</layout>
-        </repository>
-
+      
         <!-- old EBI repository -->
         <repository>
             <id>ebi-repo</id> 
@@ -53,10 +47,7 @@
             <url>http://www.ebi.ac.uk/~maven/m2repo</url>
         </repository>
         <!-- NB: for project parent -->
-        <repository>
-            <id>imagej.public</id>
-            <url>http://maven.imagej.net/content/groups/public</url>
-        </repository>
+       
         <repository>
             <id>www.dcm4che.org</id>
             <name>dcm4che Repository</name>
@@ -134,21 +125,7 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.compomics</groupId>
-            <artifactId>utilities</artifactId>
-            <version>4.11.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>com.springsource.org.apache.commons.io</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+      
         <dependency>
             <groupId>org.dspace.dependencies</groupId>
             <artifactId>dspace-perst</artifactId>
@@ -194,15 +171,10 @@
             <version>1.0.1</version>
         </dependency>
         <dependency>
-    <groupId>com.ning</groupId>
-    <artifactId>compress-lzf</artifactId>
-    <version>1.0.3</version>
-</dependency>
-
-
-
-
-
+            <groupId>com.ning</groupId>
+            <artifactId>compress-lzf</artifactId>
+            <version>1.0.3</version>
+        </dependency>
         
     </dependencies>
 
